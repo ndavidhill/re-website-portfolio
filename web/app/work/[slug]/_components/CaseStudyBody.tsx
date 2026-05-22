@@ -24,7 +24,7 @@ function MediaBlockView({
           {images.map((img, i) => (
             <div
               key={i}
-              className="relative aspect-[4/5] flex-1 overflow-hidden rounded-[25px]"
+              className="relative aspect-[4/5] flex-1 overflow-hidden rounded-[16px]"
             >
               <Image
                 src={imgSrc(img, 1200)}
@@ -51,7 +51,7 @@ function MediaBlockView({
     <figure className="relative w-full">
       <div
         className={
-          'relative w-full overflow-hidden rounded-[15px] ' +
+          'relative w-full overflow-hidden rounded-[16px] ' +
           (block.layout === 'full' ? 'aspect-[16/9]' : 'aspect-[1320/851]')
         }
       >
@@ -108,7 +108,7 @@ function GalleryBlockView({
       {block.images.map((img, i) => (
         <div
           key={i}
-          className="relative aspect-square overflow-hidden rounded-[15px]"
+          className="relative aspect-square overflow-hidden rounded-[16px]"
         >
           <Image
             src={imgSrc(img, 900)}

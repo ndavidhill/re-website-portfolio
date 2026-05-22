@@ -105,7 +105,7 @@ export function VimeoBlock({
   return (
     <figure className="w-full">
       <div
-        className="relative w-full overflow-hidden rounded-[15px] bg-canvas"
+        className="relative w-full overflow-hidden rounded-[16px] bg-canvas"
         style={{
           aspectRatio: aspect,
           // Force a compositing layer so iframe content clips against the
