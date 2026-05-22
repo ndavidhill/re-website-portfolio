@@ -8,7 +8,8 @@ export default defineCliConfig({
     dataset: process.env.SANITY_STUDIO_DATASET || 'production',
   },
   // Hosted Studio target — `sanity deploy` uses this and skips the hostname
-  // prompt. Live at https://redesign.sanity.studio
-  studioHost: 'redesign',
+  // prompt. Globally-unique name ("redesign" was already taken by another org).
+  // Live at https://re-design-ndavidhill.sanity.studio
+  studioHost: 're-design-ndavidhill',
   autoUpdates: true,
 })
