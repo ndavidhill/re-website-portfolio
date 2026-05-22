@@ -3,6 +3,13 @@ import {structureTool, type StructureBuilder} from 'sanity/structure'
 import {visionTool} from '@sanity/vision'
 import {schemaTypes} from './schemas'
 
+// Public, non-secret identifiers (the project id is exposed client-side by
+// design). Hardcoded as the source of truth so `sanity deploy` always embeds
+// the right project even if a local .env isn't loaded; env vars still override
+// for e.g. a staging dataset.
+const projectId = process.env.SANITY_STUDIO_PROJECT_ID || 'ju4przbj'
+const dataset = process.env.SANITY_STUDIO_DATASET || 'production'
+
 const SINGLETONS = ['homePage'] as const
 type Singleton = (typeof SINGLETONS)[number]
 const isSingleton = (t: string | undefined): t is Singleton =>
@@ -27,8 +34,8 @@ export default defineConfig({
   name: 'default',
   title: 're.design',
 
-  projectId: process.env.SANITY_STUDIO_PROJECT_ID ?? '',
-  dataset: process.env.SANITY_STUDIO_DATASET ?? 'production',
+  projectId,
+  dataset,
 
   plugins: [structureTool({structure}), visionTool()],
 

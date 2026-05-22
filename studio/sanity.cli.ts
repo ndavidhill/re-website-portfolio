@@ -2,8 +2,10 @@ import {defineCliConfig} from 'sanity/cli'
 
 export default defineCliConfig({
   api: {
-    projectId: process.env.SANITY_STUDIO_PROJECT_ID ?? '',
-    dataset: process.env.SANITY_STUDIO_DATASET ?? 'production',
+    // Public ids — hardcoded so CLI/build commands always resolve the right
+    // project even without a loaded .env. Env vars still override.
+    projectId: process.env.SANITY_STUDIO_PROJECT_ID || 'ju4przbj',
+    dataset: process.env.SANITY_STUDIO_DATASET || 'production',
   },
   // Hosted Studio target — `sanity deploy` uses this and skips the hostname
   // prompt. Live at https://redesign.sanity.studio
