@@ -1,0 +1,145 @@
+/**
+ * Central design tokens — type styles, animations, scroll thresholds, colors.
+ *
+ * Tweak values here and they propagate everywhere they're consumed. Each
+ * section has a short note on where the values are actually used.
+ *
+ * • `type`      → Tailwind class strings (size + weight + leading + tracking).
+ *                 Used by AnimatedHeading callsites and headings across the
+ *                 case study + homepage. Colour is composed at the use site
+ *                 (e.g. `text-text-primary`), so these strings stay reusable.
+ *
+ * • `animation` → JS values consumed by framer-motion via Reveal,
+ *                 AnimatedHeading, and StickyHomeVideo.
+ *
+ * • `scroll`    → Scroll-position thresholds. Currently drives the homepage
+ *                 hero video docking.
+ *
+ * • `colors`    → Source of truth for theme colours. Emitted as CSS custom
+ *                 properties at runtime via `designVariablesCss()`. Tailwind
+ *                 utilities (`bg-canvas`, `text-text-primary`, etc.) resolve
+ *                 against those variables via globals.css.
+ */
+
+// ─────────────────────────────────────────────────────────────────────────────
+// TYPE
+// ─────────────────────────────────────────────────────────────────────────────
+
+/** Tailwind class bundles for typography — size, weight, leading, tracking. */
+export const type = {
+  /** 60.5px Helvetica-style display — "Get in touch" CTA */
+  display:
+    'text-[60.5px] font-normal leading-[52.7px] tracking-[-2.17px]',
+
+  /** 56px section heading — TLDR / Our Work / Newsroom / Awards / case study title */
+  h1: 'text-[56px] font-medium leading-[52px] tracking-[-2.56px]',
+
+  /** 48px secondary heading — homepage intro paragraph */
+  h2Large:
+    'text-[48px] font-medium leading-[48px] tracking-[-0.6px]',
+
+  /** 24px sub-heading — Work intro blocks, Clients heading */
+  h2: 'text-2xl font-medium leading-6 tracking-[-0.4px]',
+
+  /** 18px medium label — project name in case study card */
+  h3: 'text-lg font-medium leading-[18px] tracking-[-0.27px]',
+
+  /** 16px small label — Description / Capabilities / Contact / Questions headings */
+  h4: 'text-base font-medium leading-[18px] tracking-[-0.176px]',
+
+  /** 18px body / paragraph */
+  bodyLarge: 'text-lg leading-[20px] tracking-[-0.2px]',
+
+  /** 18px paragraph — TLDR question bodies, year/links */
+  body: 'text-lg leading-5 tracking-[-0.27px]',
+
+  /** 14px paragraph — description card body, news card meta */
+  bodySmall: 'text-sm leading-[22px] tracking-[-0.084px]',
+
+  /** 12px small caps-ish — discipline / capability tags */
+  caption: 'text-xs font-medium leading-4',
+
+  /** 15.75px footer copy */
+  footer: 'text-[15.75px] leading-4 tracking-[-0.6px]',
+} as const
+
+// ─────────────────────────────────────────────────────────────────────────────
+// ANIMATION
+// ─────────────────────────────────────────────────────────────────────────────
+
+export const animation = {
+  /** Default easing — ease-out-expo. Snappy start, smooth settle. */
+  ease: [0.16, 1, 0.3, 1] as const,
+
+  /** Seconds. Use `snappy` for icon swaps, `long` for reveal motion. */
+  duration: {
+    snappy: 0.2,
+    short: 0.4,
+    medium: 0.6,
+    long: 0.95,
+  },
+
+  /** Seconds between staggered children (word-by-word reveal, list cascades). */
+  stagger: {
+    tight: 0.05,
+    normal: 0.08,
+    loose: 0.12,
+  },
+
+  /** Defaults for the on-scroll `Reveal` wrapper. */
+  reveal: {
+    /** Px the element travels in from below. */
+    offset: 32,
+    /** Negative bottom inset so animation fires shortly before fully visible. */
+    rootMarginPx: 80,
+  },
+} as const
+
+// ─────────────────────────────────────────────────────────────────────────────
+// SCROLL
+// ─────────────────────────────────────────────────────────────────────────────
+
+export const scroll = {
+  /**
+   * Hero video docking band — at TRIGGER_START the video is still centred,
+   * by TRIGGER_END it's fully docked to the bottom-right corner.
+   */
+  heroVideoTrigger: {
+    start: 240,
+    end: 900,
+  },
+} as const
+
+// ─────────────────────────────────────────────────────────────────────────────
+// COLORS — single source of truth. Emitted as CSS variables at runtime.
+// ─────────────────────────────────────────────────────────────────────────────
+
+export const colors = {
+  canvas: '#000000',
+  surface: '#1d1d1d',
+  surfaceDeep: '#1d1d1d',
+  textPrimary: '#eeeeee',
+  textSecondary: '#9f9f9f',
+  textMuted: '#b3b3b3',
+  textFaint: '#525252',
+  border: '#474747',
+} as const
+
+/**
+ * Returns a CSS rule that sets the `--color-*` custom properties used by
+ * Tailwind's theme tokens (defined in `globals.css`). Inject the result in
+ * `<head>` via a `<style>` tag in the root layout — that becomes the runtime
+ * source of truth so editing `colors` above updates the whole app.
+ */
+export function designVariablesCss(): string {
+  return `:root {
+  --color-canvas: ${colors.canvas};
+  --color-surface: ${colors.surface};
+  --color-surface-deep: ${colors.surfaceDeep};
+  --color-text-primary: ${colors.textPrimary};
+  --color-text-secondary: ${colors.textSecondary};
+  --color-text-muted: ${colors.textMuted};
+  --color-text-faint: ${colors.textFaint};
+  --color-border: ${colors.border};
+}`
+}

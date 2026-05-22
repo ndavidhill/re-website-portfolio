@@ -1,0 +1,31 @@
+@import "tailwindcss";
+
+@theme inline {
+  --color-canvas: var(--color-canvas);
+  --color-surface: var(--color-surface);
+  --color-surface-deep: var(--color-surface-deep);
+  --color-text-primary: var(--color-text-primary);
+  --color-text-secondary: var(--color-text-secondary);
+  --color-text-muted: var(--color-text-muted);
+  --color-text-faint: var(--color-text-faint);
+  --color-border: var(--color-border);
+}
+
+/* Color tokens (`--color-*`) come from `lib/design.ts` via a <style> tag in
+   layout.tsx — edit colors there.  This block only handles font wiring,
+   declared in :root so it beats Tailwind v4's default --font-sans. */
+:root {
+  --font-sans: var(--font-graphik), "Helvetica Neue", Helvetica, Arial,
+    sans-serif;
+  --font-display: var(--font-graphik), "Helvetica Neue", Helvetica, Arial,
+    sans-serif;
+}
+
+html,
+body {
+  background: var(--color-canvas);
+  color: var(--color-text-primary);
+  font-family: var(--font-sans);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
