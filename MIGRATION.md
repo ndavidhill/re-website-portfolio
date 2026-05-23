@@ -45,6 +45,21 @@ the new Sanity project (`ju4przbj`, dataset `production`). Companion to
 - [ ] **7 — QA & curate** *(you)* — finalise `disciplines`, `tagline`, `gridImages`,
       `featured`/`order`; spot-check bodies; publish.
 
+## Behaviour-led rewrites *(Truth → Behaviour → System → Proof)*
+
+Per `re_case_study_rewrite_prompt_updated.md`, each case study's narrative is
+rewritten in Re's "Brand that behaves" voice and applied to the
+`descriptionAccordion` (title/body/images untouched).
+
+- [x] Rewrites written → `studio/migration/rewrites/<slug>.md` — **23 of 24**
+      (Franklin Templeton skipped: no source copy / "Details to come").
+- [x] `apply-rewrites.mjs` parses each rewrite into accordion panels. Each
+      Signature Behaviour is its own panel; the framing line is hidden.
+- [ ] **Apply** *(you run, authed)*:
+      `npx sanity exec migration/apply-rewrites.mjs --with-user-token` from /studio.
+- Source copy per project dumped to `rewrites/_source/` via `extract-source.mjs`
+  (gitignored; regenerable).
+
 ## Open decisions (resolve during Phase 0/3)
 
 1. **Disciplines** — Prismic tags are free-form; won't map 1:1 to the 8-value

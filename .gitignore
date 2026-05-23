@@ -29,3 +29,5 @@ studio/migration/triage.html
 # committed so the import can be run from another machine after a plain git pull.
 studio/migration/out/*
 !studio/migration/out/*.ndjson
+# Extracted Prismic source copy — regenerable via extract-source.mjs
+studio/migration/rewrites/_source/
