@@ -10,7 +10,7 @@
 # Dependencies & build artifacts (also covered by per-package .gitignores)
 node_modules/
 .next/
-out/
+/web/out/
 dist/
 build/
 
@@ -25,5 +25,7 @@ studio/migration/raw/
 # Generated triage artifacts — regenerable via build-index.mjs (selection.json is kept)
 studio/migration/triage.csv
 studio/migration/triage.html
-# Generated transform output — regenerable via transform.mjs
-studio/migration/out/
+# Generated transform output — regenerable via transform.mjs, but the NDJSON is
+# committed so the import can be run from another machine after a plain git pull.
+studio/migration/out/*
+!studio/migration/out/*.ndjson
