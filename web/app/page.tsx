@@ -148,7 +148,7 @@ function TldrSection({home}: {home: Home}) {
                   {home.capabilities.map((cap) => (
                     <li
                       key={cap}
-                      className="text-base font-medium leading-[18px] tracking-[-0.176px] text-text-secondary"
+                      className="text-lg font-medium leading-6 tracking-[-0.176px] text-text-faint"
                     >
                       {cap}
                     </li>
@@ -173,7 +173,7 @@ function TldrSection({home}: {home: Home}) {
                       <h4 className="text-base font-medium leading-[18px] tracking-[-0.176px] text-text-primary">
                         {q.label}
                       </h4>
-                      <p className="text-base font-medium leading-[18px] tracking-[-0.176px] text-text-secondary">
+                      <p className="text-lg font-medium leading-6 tracking-[-0.176px] text-text-faint">
                         {q.body}
                       </p>
                     </div>
