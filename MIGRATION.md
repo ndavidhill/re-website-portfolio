@@ -28,9 +28,9 @@ the new Sanity project (`ju4przbj`, dataset `production`). Companion to
       `studio/migration/MAPPING.md` written, `pull.mjs` written. ✓
 - [x] **1 — Pull** *(Claude, read-only)* — `pull.mjs` pulled **68 work, 53 article,
       26 author** → `studio/migration/raw/*.json` + `_meta.json`. ✓
-- [ ] **2 — Triage index** *(Claude builds, you decide)* — `build-index.mjs` →
-      `triage.csv` (type, title, client, year, slug, live URL, thumbnail). You mark
-      a `keep` column.
+- [x] **2 — Triage + selection** *(done)* — `build-index.mjs` → triage gallery;
+      selection captured in `selection.json`: **24 work + 5 articles** (all slugs
+      validated against the snapshot).
 - [ ] **3 — Transform** *(Claude)* — `transform.mjs`: kept items → Sanity NDJSON
       per `MAPPING.md`, incl. RichText→PortableText + slice→block mapping, with
       placeholder asset refs + a sidecar image-URL manifest.
