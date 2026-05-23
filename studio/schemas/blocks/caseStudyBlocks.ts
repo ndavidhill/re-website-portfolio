@@ -217,7 +217,15 @@ export const videoBlock = defineType({
   type: 'object',
   icon: PlayIcon,
   fields: [
-    {name: 'url', type: 'url', title: 'Video URL', description: 'Vimeo (preferred) or YouTube'},
+    {name: 'url', type: 'url', title: 'Video URL', description: 'Vimeo or YouTube (for embeds)'},
+    {
+      name: 'videoFile',
+      type: 'file',
+      title: 'Video file',
+      description:
+        'Self-hosted video (autoplays muted, loops). Use this OR a URL — file takes precedence.',
+      options: {accept: 'video/mp4,video/webm,video/quicktime'},
+    },
     {
       name: 'poster',
       type: 'image',

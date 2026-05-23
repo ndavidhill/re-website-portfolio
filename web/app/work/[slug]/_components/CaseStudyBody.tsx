@@ -78,6 +78,39 @@ function VideoBlockView({
 }: {
   block: Extract<CaseStudyBlock, {_type: 'videoBlock'}>
 }) {
+  // Self-hosted file takes precedence (migrated full-width videos). Autoplays
+  // muted + loops, controls hidden — same treatment as the homepage hero.
+  const fileUrl = block.videoFile?.asset?.url
+  if (fileUrl) {
+    const ratio = parseRatio(block.aspectRatio)
+    return (
+      <figure className="w-full">
+        <div
+          className="relative w-full overflow-hidden rounded-[16px] bg-canvas"
+          style={ratio ? {aspectRatio: ratio} : undefined}
+        >
+          <video
+            src={fileUrl}
+            poster={
+              block.poster ? urlForImage(block.poster).width(1600).url() : undefined
+            }
+            autoPlay
+            muted
+            loop
+            playsInline
+            preload="metadata"
+            className={ratio ? 'absolute inset-0 h-full w-full object-cover' : 'block h-auto w-full'}
+          />
+        </div>
+        {block.caption && (
+          <figcaption className="mt-2 text-sm leading-[22px] text-text-secondary">
+            {block.caption}
+          </figcaption>
+        )}
+      </figure>
+    )
+  }
+
   if (!block.url) return null
   return (
     <VimeoBlock
@@ -87,6 +120,15 @@ function VideoBlockView({
       aspectRatio={block.aspectRatio}
     />
   )
+}
+
+/** "16/9" | "16:9" | "1.78" → CSS aspect-ratio string, or null. */
+function parseRatio(v?: string): string | null {
+  if (!v) return null
+  const c = v.trim().replace(':', '/').replace(/\s+/g, '')
+  if (/^\d+(?:\.\d+)?\/\d+(?:\.\d+)?$/.test(c)) return c.replace('/', ' / ')
+  if (/^\d+(?:\.\d+)?$/.test(c)) return c
+  return null
 }
 
 function GalleryBlockView({

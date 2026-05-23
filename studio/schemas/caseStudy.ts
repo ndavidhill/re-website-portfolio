@@ -105,6 +105,8 @@ export default defineType({
           {title: 'Packaging', value: 'packaging'},
           {title: 'Motion', value: 'motion'},
           {title: 'Editorial', value: 'editorial'},
+          {title: 'Spatial & retail', value: 'spatial'},
+          {title: 'Service design', value: 'service-design'},
         ],
       },
       description: 'Pick all that apply. Edit the list in caseStudy.ts to add new disciplines.',

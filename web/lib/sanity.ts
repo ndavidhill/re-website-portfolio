@@ -118,6 +118,8 @@ export type Discipline =
   | 'packaging'
   | 'motion'
   | 'editorial'
+  | 'spatial'
+  | 'service-design'
 
 export interface ProjectCredit {
   _key: string
@@ -158,6 +160,8 @@ export interface VideoBlock {
   _type: 'videoBlock'
   _key: string
   url?: string
+  /** Self-hosted video file (takes precedence over url). */
+  videoFile?: {asset?: {url?: string; mimeType?: string}}
   poster?: SanityImage
   caption?: string
   audioControl?: boolean
@@ -334,7 +338,8 @@ export const caseStudyBySlugQuery = groq`
       },
       _type == "videoBlock" => {
         ...,
-        poster{..., asset->}
+        poster{..., asset->},
+        videoFile{asset->{url, mimeType}}
       }
     },
     credits,
@@ -498,4 +503,6 @@ export const DISCIPLINE_LABELS: Record<Discipline, string> = {
   packaging: 'Packaging',
   motion: 'Motion',
   editorial: 'Editorial',
+  spatial: 'Spatial & retail',
+  'service-design': 'Service design',
 }

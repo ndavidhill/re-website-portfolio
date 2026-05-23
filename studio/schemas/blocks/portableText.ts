@@ -31,5 +31,16 @@ export const portableText = defineType({
         ],
       },
     },
+    // Inline images — used by article bodies (migrated from Prismic image
+    // slices). The article frontend isn't built yet, but the images are stored
+    // here so nothing is lost.
+    {
+      type: 'image',
+      options: {hotspot: true},
+      fields: [
+        {name: 'alt', type: 'string', title: 'Alt text'},
+        {name: 'caption', type: 'string', title: 'Caption'},
+      ],
+    },
   ],
 })

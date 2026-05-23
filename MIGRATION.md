@@ -31,13 +31,15 @@ the new Sanity project (`ju4przbj`, dataset `production`). Companion to
 - [x] **2 — Triage + selection** *(done)* — `build-index.mjs` → triage gallery;
       selection captured in `selection.json`: **24 work + 5 articles** (all slugs
       validated against the snapshot).
-- [ ] **3 — Transform** *(Claude)* — `transform.mjs`: kept items → Sanity NDJSON
-      per `MAPPING.md`, incl. RichText→PortableText + slice→block mapping, with
-      placeholder asset refs + a sidecar image-URL manifest.
-- [ ] **4 — Image pipeline** *(Claude writes, you run)* — `upload-assets.mjs`:
-      download Prismic CDN images → `client.assets.upload()` → swap in real refs.
-- [ ] **5 — Pilot** *(you run, both verify)* — full pipeline on 2–3 work + 1 article;
-      check `/work/[slug]`, `/work`, article page; iterate transform.
+- [x] **3 — Transform** *(done)* — `transform.mjs` → `out/docs.ndjson`:
+      **5 authors, 24 case studies, 5 articles**, zero warnings. RichText→
+      PortableText, slice→block mapping, disciplines, accordion, native videos.
+- [x] **4 — Image pipeline folded into import** — assets use the `_sanityAsset`
+      (`image@<url>` / `file@<url>`) syntax, so `sanity dataset import` fetches +
+      uploads them automatically. No separate upload script needed.
+- [ ] **5 — Pilot** *(you run, both verify)* — `out/pilot.ndjson` ready
+      (tourism-australia, domain-refresh, commbank + thejollofkitchen + author,
+      69 assets). Import, verify on site, iterate.
 - [ ] **6 — Bulk** *(you run)* — run validated pipeline on the full kept set;
       authors created on-demand + de-duped; `sanity dataset import`.
 - [ ] **7 — QA & curate** *(you)* — finalise `disciplines`, `tagline`, `gridImages`,

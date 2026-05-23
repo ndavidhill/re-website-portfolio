@@ -25,3 +25,5 @@ studio/migration/raw/
 # Generated triage artifacts — regenerable via build-index.mjs (selection.json is kept)
 studio/migration/triage.csv
 studio/migration/triage.html
+# Generated transform output — regenerable via transform.mjs
+studio/migration/out/
