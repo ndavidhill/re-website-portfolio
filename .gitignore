@@ -19,3 +19,6 @@ build/
 
 # Vercel
 .vercel
+
+# Prismic migration snapshot — regenerable via studio/migration/pull.mjs
+studio/migration/raw/
