@@ -136,6 +136,8 @@ function transformWork(doc) {
   const body = []
   const accordion = []
   let hero = null
+  let projectTitle = null // first introduction_block heading → case study title
+  let descPanel = null // first paragraph_breakout → "Description" accordion panel
 
   for (const s of d.body ?? []) {
     const p = s.primary ?? {}
@@ -168,10 +170,19 @@ function transformWork(doc) {
         pushMedia(body, s.items, 'gallery')
         break
       case 'work_-_paragraph_breakout':
-        body.push(...richToBlocks(p.content))
+        // First intro paragraph becomes the "Description" accordion panel;
+        // any further paragraphs stay in the body.
+        if (!descPanel) {
+          descPanel = {_key: key(), title: 'Description', body: richToPlain(p.content)}
+        } else {
+          body.push(...richToBlocks(p.content))
+        }
         break
       case 'work_-_introduction_block':
-        if (p.heading) body.push(h(p.heading, 'h2'))
+        // First heading becomes the project title (H1); later ones stay as
+        // section headings in the body.
+        if (!projectTitle && p.heading) projectTitle = p.heading
+        else if (p.heading) body.push(h(p.heading, 'h2'))
         break
       case 'work_-_quote_breakout':
         if (p.quote)
@@ -203,19 +214,23 @@ function transformWork(doc) {
   ]
   const year = parseInt(String(doc.first_publication_date).slice(0, 4), 10) || 2024
 
+  // Description panel first (open by default), then the label/content panels.
+  if (!descPanel && d.excerpt) descPanel = {_key: key(), title: 'Description', body: d.excerpt}
+  const descriptionAccordion = descPanel ? [descPanel, ...accordion] : accordion
+
   return {
     _id: `caseStudy-${doc.uid}`,
     _type: 'caseStudy',
-    title: d.title,
+    title: projectTitle || d.title, // intro heading → H1; client name as fallback
     slug: {_type: 'slug', current: doc.uid},
-    client: d.title, // no explicit client field in Prismic — review in Studio
+    client: d.title, // brand name (Prismic has no separate client field)
     year,
     summary: d.excerpt || d.sub_title || d.title,
     ...(d.sub_title ? {tagline: d.sub_title} : {}),
     ...(disciplines.length ? {disciplines} : {}),
     ...(heroImage ? {heroImage} : {}),
     ...(thumbnailImage ? {thumbnailImage} : {}),
-    ...(accordion.length ? {descriptionAccordion: accordion} : {}),
+    ...(descriptionAccordion.length ? {descriptionAccordion} : {}),
     ...(body.length ? {body} : {}),
     featured: false,
   }
