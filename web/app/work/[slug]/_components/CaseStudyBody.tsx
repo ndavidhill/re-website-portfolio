@@ -7,7 +7,7 @@ import {
 } from '@/lib/sanity'
 import {Reveal} from '@/components/Reveal'
 import {VimeoBlock} from '@/app/_components/VimeoBlock'
-import {toEmbedUrl} from '@/lib/video'
+import {LazyCoverVideo} from '@/app/_components/LazyCoverVideo'
 
 function imgSrc(image: SanityImage, width: number) {
   return urlForImage(image).width(width).auto('format').url()
@@ -55,50 +55,15 @@ function MediaSlot({
     ? urlForImage(item.poster).width(1600).url()
     : undefined
 
-  const fileUrl = item.videoFile?.asset?.url
-  if (fileUrl) {
-    return (
-      <video
-        src={fileUrl}
-        poster={posterSrc}
-        autoPlay
-        muted
-        loop
-        playsInline
-        preload="metadata"
-        aria-label={item.alt ?? ''}
-        className="absolute inset-0 h-full w-full object-cover"
-      />
-    )
-  }
-
-  const embed = item.url ? toEmbedUrl(item.url) : null
-  if (embed) {
-    return (
-      <iframe
-        src={embed}
-        title={item.alt ?? 'Video'}
-        allow="autoplay; fullscreen; picture-in-picture"
-        allowFullScreen
-        className="absolute inset-0 h-full w-full"
-      />
-    )
-  }
-
-  // No file or URL yet — fall back to the poster so the layout holds.
-  if (posterSrc) {
-    return (
-      <Image
-        src={posterSrc}
-        alt={item.alt ?? ''}
-        fill
-        sizes={sizes}
-        className="object-cover"
-        priority={priority}
-      />
-    )
-  }
-  return null
+  // Viewport-gated so stacked/paired videos don't all load at once on mobile.
+  return (
+    <LazyCoverVideo
+      url={item.url}
+      fileUrl={item.videoFile?.asset?.url}
+      poster={posterSrc}
+      title={item.alt}
+    />
+  )
 }
 
 function MediaBlockView({
@@ -204,6 +169,7 @@ function VideoBlockView({
       caption={block.caption}
       audioControl={block.audioControl}
       aspectRatio={block.aspectRatio}
+      poster={block.poster ? urlForImage(block.poster).width(1600).url() : undefined}
     />
   )
 }

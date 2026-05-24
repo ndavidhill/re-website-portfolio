@@ -3,6 +3,7 @@
 import {useEffect, useRef, useState} from 'react'
 import {MuteToggle} from '@/components/MuteToggle'
 import {toEmbedUrl} from '@/lib/video'
+import {useInView} from '@/lib/useInView'
 
 interface Props {
   url: string
@@ -10,6 +11,8 @@ interface Props {
   audioControl?: boolean
   /** Override the aspect ratio (e.g. "16/9"). Otherwise auto-detected via SDK. */
   aspectRatio?: string
+  /** Fallback image shown until the embed is in view + loaded. */
+  poster?: string
 }
 
 type VimeoPlayer = {
@@ -36,7 +39,9 @@ export function VimeoBlock({
   caption,
   audioControl = false,
   aspectRatio,
+  poster,
 }: Props) {
+  const {ref: containerRef, inView} = useInView<HTMLDivElement>('400px')
   const iframeRef = useRef<HTMLIFrameElement>(null)
   const playerRef = useRef<VimeoPlayer | null>(null)
   const [muted, setMuted] = useState(true)
@@ -47,6 +52,7 @@ export function VimeoBlock({
   const embedUrl = toEmbedUrl(url)
 
   useEffect(() => {
+    if (!inView) return
     if (!iframeRef.current) return
     if (!isVimeoUrl(url)) return
 
@@ -89,7 +95,7 @@ export function VimeoBlock({
       cleanup?.()
       playerRef.current = null
     }
-  }, [url, audioControl, aspectRatio])
+  }, [url, audioControl, aspectRatio, inView])
 
   const toggleMute = () => {
     const player = playerRef.current
@@ -106,6 +112,7 @@ export function VimeoBlock({
   return (
     <figure className="w-full">
       <div
+        ref={containerRef}
         className="relative w-full overflow-hidden rounded-[4px] bg-canvas md:rounded-[16px]"
         style={{
           aspectRatio: aspect,
@@ -115,15 +122,30 @@ export function VimeoBlock({
           isolation: 'isolate',
         }}
       >
-        <iframe
-          ref={iframeRef}
-          src={embedUrl}
-          title={caption ?? 'Video'}
-          allow="autoplay; fullscreen; picture-in-picture"
-          allowFullScreen
-          className="absolute inset-0 block h-full w-full"
-        />
-        {audioControl && (
+        {poster && (
+          // eslint-disable-next-line @next/next/no-img-element
+          <img
+            src={poster}
+            alt=""
+            aria-hidden="true"
+            className="absolute inset-0 h-full w-full object-cover"
+          />
+        )}
+        {/* Mount the embed only while near the viewport — mobile browsers cap
+            concurrent inline videos, so eager-loading every clip leaves later
+            ones blank. */}
+        {inView && (
+          <iframe
+            ref={iframeRef}
+            src={embedUrl}
+            title={caption ?? 'Video'}
+            loading="lazy"
+            allow="autoplay; fullscreen; picture-in-picture"
+            allowFullScreen
+            className="absolute inset-0 block h-full w-full"
+          />
+        )}
+        {audioControl && inView && (
           <div className="pointer-events-none absolute inset-0 flex items-end justify-end p-4">
             <MuteToggle muted={muted} onToggle={toggleMute} size="sm" />
           </div>
