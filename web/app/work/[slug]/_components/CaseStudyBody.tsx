@@ -20,7 +20,7 @@ function isPairVideo(item: SanityImage | PairVideo): item is PairVideo {
 // Frames holding an <iframe> need their own compositing layer so the embed
 // clips against the rounded corners (Chromium/WebKit don't do this otherwise).
 const FRAME_FX =
-  'overflow-hidden rounded-[16px] [transform:translateZ(0)] [isolation:isolate]'
+  'overflow-hidden rounded-[4px] md:rounded-[16px] [transform:translateZ(0)] [isolation:isolate]'
 
 /**
  * One slot in a media block — an image or a video — rendered to fully cover
@@ -172,7 +172,7 @@ function VideoBlockView({
     return (
       <figure className="w-full">
         <div
-          className="relative w-full overflow-hidden rounded-[16px] bg-canvas"
+          className="relative w-full overflow-hidden rounded-[4px] bg-canvas md:rounded-[16px]"
           style={ratio ? {aspectRatio: ratio} : undefined}
         >
           <video
@@ -236,7 +236,7 @@ function GalleryBlockView({
       {block.images.map((img, i) => (
         <div
           key={i}
-          className="relative aspect-square overflow-hidden rounded-[16px]"
+          className="relative aspect-square overflow-hidden rounded-[4px] md:rounded-[16px]"
         >
           <Image
             src={imgSrc(img, 900)}
@@ -260,7 +260,7 @@ function QuoteBlockView({
   if (!block.quote) return null
   return (
     <blockquote className="border-t border-border pt-8">
-      <p className="text-[40px] font-medium leading-[44px] tracking-[-0.6px] text-text-primary">
+      <p className="text-[28px] font-medium leading-[32px] tracking-[-0.4px] md:text-[40px] md:leading-[44px] md:tracking-[-0.6px] text-text-primary">
         “{block.quote}”
       </p>
       {(block.attribution || block.role) && (
@@ -286,7 +286,7 @@ function StatsBlockView({
     >
       {block.stats.map((s) => (
         <div key={s._key} className="flex flex-col gap-2">
-          <dt className="text-[56px] font-medium leading-[56px] tracking-[-0.56px] text-text-primary">
+          <dt className="text-[40px] font-medium leading-[40px] tracking-[-0.4px] text-text-primary md:text-[56px] md:leading-[56px] md:tracking-[-0.56px]">
             {s.value}
           </dt>
           <dd className="text-base leading-5 text-text-secondary">{s.label}</dd>
@@ -312,7 +312,7 @@ function PortableTextView({
 
   if (block.style === 'h2') {
     return (
-      <h2 className="mx-auto max-w-[760px] text-[40px] font-medium leading-[44px] tracking-[-0.6px] text-text-primary">
+      <h2 className="mx-auto max-w-[760px] text-[28px] font-medium leading-[32px] tracking-[-0.4px] md:text-[40px] md:leading-[44px] md:tracking-[-0.6px] text-text-primary">
         {text}
       </h2>
     )

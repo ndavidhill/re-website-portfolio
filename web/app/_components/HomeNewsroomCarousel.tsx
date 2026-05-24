@@ -46,7 +46,7 @@ export function HomeNewsroomCarousel({articles}: Props) {
 
   if (articles.length === 0) {
     return (
-      <div className="rounded-[20px] border border-border bg-surface px-8 py-16 text-center text-text-secondary">
+      <div className="rounded-[4px] border border-border bg-surface px-8 py-16 text-center text-text-secondary md:rounded-[20px]">
         No articles yet — publish from the Studio to populate this carousel.
       </div>
     )
@@ -81,7 +81,7 @@ export function HomeNewsroomCarousel({articles}: Props) {
 
       <div
         ref={trackRef}
-        className="-mx-[60px] flex snap-x snap-mandatory gap-6 overflow-x-auto scroll-smooth px-[60px] pb-2 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+        className="-mx-6 flex snap-x snap-mandatory gap-6 overflow-x-auto scroll-smooth px-6 pb-2 md:-mx-[60px] md:px-[60px] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
       >
         {articles.map((article) => (
           <NewsCard key={article._id} article={article} />
@@ -111,8 +111,7 @@ function NewsCard({article}: {article: ArticleCard}) {
   return (
     <Link
       href={`/think/${article.slug}`}
-      className="group flex w-[408px] shrink-0 snap-start flex-col overflow-hidden rounded-[20px] bg-surface"
-      style={{flexBasis: `${CARD_WIDTH}px`}}
+      className="group flex w-[78vw] max-w-[360px] shrink-0 snap-start flex-col overflow-hidden rounded-[4px] bg-surface md:w-[408px] md:max-w-none md:rounded-[20px]"
     >
       <div className="relative aspect-[408/571] w-full overflow-hidden">
         {src ? (

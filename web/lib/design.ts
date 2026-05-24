@@ -27,16 +27,16 @@
 
 /** Tailwind class bundles for typography — size, weight, leading, tracking. */
 export const type = {
-  /** 60.5px Helvetica-style display — "Get in touch" CTA */
+  /** 60.5px Helvetica-style display — "Get in touch" CTA (36px on mobile) */
   display:
-    'text-[60.5px] font-normal leading-[52.7px] tracking-[-2.17px]',
+    'text-[36px] font-normal leading-[34px] tracking-[-1.2px] md:text-[60.5px] md:leading-[52.7px] md:tracking-[-2.17px]',
 
-  /** 56px section heading — TLDR / Our Work / Newsroom / Awards / case study title */
-  h1: 'text-[56px] font-medium leading-[52px] tracking-[-2.56px]',
+  /** 56px section heading — TLDR / Our Work / Newsroom / Awards / case study title (36px on mobile) */
+  h1: 'text-[36px] font-medium leading-[34px] tracking-[-1.5px] md:text-[56px] md:leading-[52px] md:tracking-[-2.56px]',
 
-  /** 48px secondary heading — homepage intro paragraph */
+  /** 48px secondary heading — homepage intro paragraph (30px on mobile) */
   h2Large:
-    'text-[48px] font-medium leading-[48px] tracking-[-0.6px]',
+    'text-[30px] font-medium leading-[32px] tracking-[-0.4px] md:text-[48px] md:leading-[48px] md:tracking-[-0.6px]',
 
   /** 24px sub-heading — Work intro blocks, Clients heading */
   h2: 'text-2xl font-medium leading-6 tracking-[-0.4px]',

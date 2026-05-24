@@ -40,7 +40,7 @@ export function WorkIndexMediaCard({
       href={href}
       aria-label={alt}
       className={
-        'group relative block min-w-0 overflow-hidden rounded-[12px] bg-surface ' +
+        'group relative block min-w-0 overflow-hidden rounded-[4px] bg-surface md:rounded-[12px] ' +
         (noFlex
           ? ''
           : 'flex-1 transition-[flex-grow] duration-500 ease-[cubic-bezier(0.16,1,0.3,1)] hover:[flex-grow:2]')

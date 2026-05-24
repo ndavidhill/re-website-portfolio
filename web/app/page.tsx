@@ -59,7 +59,7 @@ export default async function HomePage() {
 
       <StickyHomeVideo src={home.heroVideoUrl} poster={posterUrl} />
 
-      <div className="flex flex-col gap-60 px-[60px] pb-5">
+      <div className="flex flex-col gap-24 px-6 pb-5 md:gap-60 md:px-[60px]">
         {/* Intro paragraph */}
         <Reveal>
           <p className={`mx-auto max-w-[1320px] text-text-primary [text-wrap:balance] ${type.h2Large}`}>
@@ -280,7 +280,7 @@ function WorkSection({
           ))}
         </div>
       ) : (
-        <div className="rounded-[20px] border border-border bg-surface px-8 py-16 text-center text-text-secondary">
+        <div className="rounded-[4px] border border-border bg-surface px-8 py-16 text-center text-text-secondary md:rounded-[20px]">
           No featured case studies yet. Toggle <em>Feature on homepage</em> on
           a case study in the Studio.
         </div>
@@ -334,7 +334,7 @@ function AwardsSection({home}: {home: Home}) {
 
       <Reveal delay={0.08}>
         <div className="border-t border-border pt-5">
-          <div className="grid grid-cols-[2fr_2fr_1fr] gap-4 pb-4 text-2xl font-medium leading-6 tracking-[-0.4px] text-text-secondary">
+          <div className="grid grid-cols-[2fr_2fr_1fr] gap-3 pb-4 text-base font-medium leading-6 tracking-[-0.4px] text-text-secondary md:gap-4 md:text-2xl">
             <div>Description</div>
             <div>Awards</div>
             <div>Year</div>
@@ -343,7 +343,7 @@ function AwardsSection({home}: {home: Home}) {
             {home.awards.map((a) => (
               <li
                 key={a._key}
-                className="grid grid-cols-[2fr_2fr_1fr] gap-4 py-3 text-lg leading-6 tracking-[-0.27px] text-text-primary"
+                className="grid grid-cols-[2fr_2fr_1fr] gap-3 py-3 text-sm leading-6 tracking-[-0.27px] text-text-primary md:gap-4 md:text-lg"
               >
                 <span>{a.description}</span>
                 <span className="text-text-secondary">{a.award}</span>

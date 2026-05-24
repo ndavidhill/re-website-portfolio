@@ -26,7 +26,7 @@ export function WorkCard({card, showBadge = false, label}: Props) {
     <Link
       href={`/work/${card.slug}`}
       aria-label={`${card.client} — ${card.title}`}
-      className="group relative block aspect-[678/782] w-full overflow-hidden rounded-[12px] bg-surface"
+      className="group relative block aspect-[678/782] w-full overflow-hidden rounded-[4px] bg-surface md:rounded-[12px]"
     >
       {src ? (
         <Image
