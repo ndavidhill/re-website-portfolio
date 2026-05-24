@@ -127,11 +127,27 @@ export interface ProjectCredit {
   people?: string
 }
 
+/**
+ * A video slot inside a media pair. Mirrors videoBlock: a Vimeo/YouTube URL
+ * for embeds, or a self-hosted file that takes precedence over the URL.
+ */
+export interface PairVideo {
+  _type: 'pairVideo'
+  _key: string
+  url?: string
+  videoFile?: {asset?: {url?: string; mimeType?: string}}
+  poster?: SanityImage
+  alt?: string
+}
+
 export interface MediaBlock {
   _type: 'mediaBlock'
   _key: string
   layout: 'full' | 'contained' | 'pair'
-  images?: SanityImage[]
+  /** Each item is an image or, in the pair layout, a video. */
+  images?: (SanityImage | PairVideo)[]
+  /** Pair layout only: frame ratio for both columns, e.g. "4/5", "9/16". */
+  aspectRatio?: string
   caption?: string
 }
 
@@ -330,7 +346,15 @@ export const caseStudyBySlugQuery = groq`
       ...,
       _type == "mediaBlock" => {
         ...,
-        images[]{..., asset->}
+        images[]{
+          ...,
+          asset->,
+          _type == "pairVideo" => {
+            ...,
+            poster{..., asset->},
+            videoFile{asset->{url, mimeType}}
+          }
+        }
       },
       _type == "galleryBlock" => {
         ...,

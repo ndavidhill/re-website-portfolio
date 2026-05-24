@@ -15,7 +15,7 @@ const LAYOUT_LABELS: Record<string, string> = {
 
 interface InlineImage {
   _key?: string
-  _type?: 'image'
+  _type?: 'image' | 'pairVideo'
   alt?: string
   asset?: {_ref?: string; _type?: 'reference'}
 }
@@ -48,7 +48,7 @@ export const mediaBlock = defineType({
         list: [
           {title: 'Full bleed', value: 'full'},
           {title: 'Contained', value: 'contained'},
-          {title: 'Side by side (two images)', value: 'pair'},
+          {title: 'Side by side (images / videos)', value: 'pair'},
         ],
       },
       initialValue: 'contained',
@@ -56,15 +56,75 @@ export const mediaBlock = defineType({
     {
       name: 'images',
       type: 'array',
-      title: 'Images',
+      title: 'Images / videos',
+      description:
+        'One or two items. In the side-by-side layout each slot can be an image or a video (Vimeo/YouTube URL or an MP4 upload) — e.g. two portrait videos.',
       of: [
         {
           type: 'image',
           options: {hotspot: true},
           fields: [{name: 'alt', type: 'string', title: 'Alt text'}],
         },
+        {
+          type: 'object',
+          name: 'pairVideo',
+          title: 'Video',
+          icon: PlayIcon,
+          fields: [
+            {
+              name: 'url',
+              type: 'url',
+              title: 'Video URL',
+              description: 'Vimeo or YouTube (for embeds). Autoplays muted + loops.',
+            },
+            {
+              name: 'videoFile',
+              type: 'file',
+              title: 'Video file',
+              description:
+                'Self-hosted video. Use this OR a URL — file takes precedence. Autoplays muted + loops.',
+              options: {accept: 'video/mp4,video/webm,video/quicktime'},
+            },
+            {
+              name: 'poster',
+              type: 'image',
+              title: 'Poster image',
+              options: {hotspot: true},
+            },
+            {name: 'alt', type: 'string', title: 'Alt text'},
+          ],
+          preview: {
+            select: {
+              alt: 'alt',
+              url: 'url',
+              poster: 'poster',
+              filename: 'videoFile.asset.originalFilename',
+            },
+            prepare: ({alt, url, poster, filename}) => {
+              const filenameTitle =
+                typeof filename === 'string' ? prettyFilename(filename) : null
+              return {
+                title:
+                  (alt as string) ||
+                  filenameTitle ||
+                  (url ? `Video — ${url}` : 'Video (empty)'),
+                subtitle: 'Video',
+                media: poster ?? PlayIcon,
+              }
+            },
+          },
+        },
       ],
       validation: (Rule) => Rule.min(1).max(2),
+    },
+    {
+      name: 'aspectRatio',
+      type: 'string',
+      title: 'Pair aspect ratio',
+      description:
+        'Side-by-side layout only. Frame ratio applied to both columns. Default "4/5". Use "9/16" for tall portrait video, "1/1" for square.',
+      placeholder: '4/5',
+      hidden: ({parent}) => (parent as {layout?: string})?.layout !== 'pair',
     },
     {name: 'caption', type: 'string', title: 'Caption'},
   ],
@@ -91,10 +151,11 @@ export const mediaBlock = defineType({
         (count ? layoutLabel : `${layoutLabel} (empty)`)
 
       const subtitle = count
-        ? `${layoutLabel}${count === 2 ? ' · 2 images' : ''}`
-        : 'No images yet'
+        ? `${layoutLabel}${count === 2 ? ' · 2 items' : ''}`
+        : 'No media yet'
 
-      return {title, subtitle, media: first ?? ImageIcon}
+      const firstImage = first?._type === 'image' ? first : undefined
+      return {title, subtitle, media: firstImage ?? ImageIcon}
     },
   },
 })

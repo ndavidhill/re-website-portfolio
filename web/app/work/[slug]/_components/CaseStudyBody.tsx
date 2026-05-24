@@ -1,10 +1,104 @@
 import Image from 'next/image'
-import {urlForImage, type CaseStudyBlock, type SanityImage} from '@/lib/sanity'
+import {
+  urlForImage,
+  type CaseStudyBlock,
+  type SanityImage,
+  type PairVideo,
+} from '@/lib/sanity'
 import {Reveal} from '@/components/Reveal'
 import {VimeoBlock} from '@/app/_components/VimeoBlock'
+import {toEmbedUrl} from '@/lib/video'
 
 function imgSrc(image: SanityImage, width: number) {
   return urlForImage(image).width(width).auto('format').url()
+}
+
+function isPairVideo(item: SanityImage | PairVideo): item is PairVideo {
+  return item._type === 'pairVideo'
+}
+
+// Frames holding an <iframe> need their own compositing layer so the embed
+// clips against the rounded corners (Chromium/WebKit don't do this otherwise).
+const FRAME_FX =
+  'overflow-hidden rounded-[16px] [transform:translateZ(0)] [isolation:isolate]'
+
+/**
+ * One slot in a media block — an image or a video — rendered to fully cover
+ * its (positioned) frame. MP4s use object-cover; Vimeo/YouTube use the
+ * background embed, which covers its iframe.
+ */
+function MediaSlot({
+  item,
+  width,
+  sizes,
+  priority = false,
+}: {
+  item: SanityImage | PairVideo
+  width: number
+  sizes: string
+  priority?: boolean
+}) {
+  if (!isPairVideo(item)) {
+    return (
+      <Image
+        src={imgSrc(item, width)}
+        alt={item.alt ?? ''}
+        fill
+        sizes={sizes}
+        className="object-cover"
+        priority={priority}
+      />
+    )
+  }
+
+  const posterSrc = item.poster
+    ? urlForImage(item.poster).width(1600).url()
+    : undefined
+
+  const fileUrl = item.videoFile?.asset?.url
+  if (fileUrl) {
+    return (
+      <video
+        src={fileUrl}
+        poster={posterSrc}
+        autoPlay
+        muted
+        loop
+        playsInline
+        preload="metadata"
+        aria-label={item.alt ?? ''}
+        className="absolute inset-0 h-full w-full object-cover"
+      />
+    )
+  }
+
+  const embed = item.url ? toEmbedUrl(item.url) : null
+  if (embed) {
+    return (
+      <iframe
+        src={embed}
+        title={item.alt ?? 'Video'}
+        allow="autoplay; fullscreen; picture-in-picture"
+        allowFullScreen
+        className="absolute inset-0 h-full w-full"
+      />
+    )
+  }
+
+  // No file or URL yet — fall back to the poster so the layout holds.
+  if (posterSrc) {
+    return (
+      <Image
+        src={posterSrc}
+        alt={item.alt ?? ''}
+        fill
+        sizes={sizes}
+        className="object-cover"
+        priority={priority}
+      />
+    )
+  }
+  return null
 }
 
 function MediaBlockView({
@@ -14,24 +108,24 @@ function MediaBlockView({
   block: Extract<CaseStudyBlock, {_type: 'mediaBlock'}>
   priority?: boolean
 }) {
-  const images = block.images ?? []
-  if (images.length === 0) return null
+  const items = block.images ?? []
+  if (items.length === 0) return null
 
-  if (block.layout === 'pair' && images.length === 2) {
+  if (block.layout === 'pair' && items.length === 2) {
+    const ratio = parseRatio(block.aspectRatio) ?? '4 / 5'
     return (
       <figure className="flex w-full flex-col gap-2">
         <div className="flex w-full items-stretch gap-4">
-          {images.map((img, i) => (
+          {items.map((item, i) => (
             <div
               key={i}
-              className="relative aspect-[4/5] flex-1 overflow-hidden rounded-[16px]"
+              className={`relative flex-1 ${FRAME_FX}`}
+              style={{aspectRatio: ratio}}
             >
-              <Image
-                src={imgSrc(img, 1200)}
-                alt={img.alt ?? ''}
-                fill
+              <MediaSlot
+                item={item}
+                width={1200}
                 sizes="(min-width: 1280px) 50vw, 100vw"
-                className="object-cover"
                 priority={priority && i === 0}
               />
             </div>
@@ -46,23 +140,15 @@ function MediaBlockView({
     )
   }
 
-  const img = images[0]
   return (
     <figure className="relative w-full">
       <div
         className={
-          'relative w-full overflow-hidden rounded-[16px] ' +
+          `relative w-full ${FRAME_FX} ` +
           (block.layout === 'full' ? 'aspect-[16/9]' : 'aspect-[1320/851]')
         }
       >
-        <Image
-          src={imgSrc(img, 2000)}
-          alt={img.alt ?? ''}
-          fill
-          sizes="100vw"
-          className="object-cover"
-          priority={priority}
-        />
+        <MediaSlot item={items[0]} width={2000} sizes="100vw" priority={priority} />
       </div>
       {block.caption && (
         <figcaption className="mt-2 text-sm leading-[22px] text-text-secondary">
