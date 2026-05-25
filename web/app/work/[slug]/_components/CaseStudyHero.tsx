@@ -1,4 +1,4 @@
-import {DISCIPLINE_LABELS, type CaseStudy} from '@/lib/sanity'
+import {ALL_DISCIPLINES, DISCIPLINE_LABELS, type CaseStudy} from '@/lib/sanity'
 import {Reveal} from '@/components/Reveal'
 import {AnimatedHeading} from '@/components/AnimatedHeading'
 import {type} from '@/lib/design'
@@ -65,18 +65,32 @@ export function CaseStudyHero({caseStudy}: Props) {
           )}
         </div>
 
-        {disciplines && disciplines.length > 0 && (
-          <ul className="flex flex-wrap gap-1.5">
-            {disciplines.map((discipline) => (
-              <li
-                key={discipline}
-                className="flex h-6 items-center rounded-md bg-surface-deep px-2 text-xs font-medium leading-4 text-text-secondary"
-              >
-                {DISCIPLINE_LABELS[discipline] ?? discipline}
-              </li>
-            ))}
-          </ul>
-        )}
+        {/* All disciplines are always shown; the ones selected for this project
+            are highlighted ("on"), the rest stay visible but muted ("off"). */}
+        {(() => {
+          const selected = new Set(disciplines ?? [])
+          return (
+            <ul className="flex flex-wrap gap-1.5">
+              {ALL_DISCIPLINES.map((discipline) => {
+                const active = selected.has(discipline)
+                return (
+                  <li
+                    key={discipline}
+                    data-active={active}
+                    className={
+                      'flex h-6 items-center rounded-md px-2 text-xs font-medium leading-4 transition-colors ' +
+                      (active
+                        ? 'border border-transparent bg-white/15 text-text-primary'
+                        : 'border border-border text-text-faint')
+                    }
+                  >
+                    {DISCIPLINE_LABELS[discipline]}
+                  </li>
+                )
+              })}
+            </ul>
+          )
+        })()}
       </Reveal>
     </header>
   )

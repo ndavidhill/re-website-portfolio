@@ -67,7 +67,7 @@ export function SiteHeader({activeHref}: {activeHref?: string}) {
                   <Link
                     href={item.href}
                     className={
-                      'flex h-[25px] items-center rounded-lg px-2.5 text-[14.75px] leading-[18px] tracking-[-0.3px] transition-colors ' +
+                      'flex items-center justify-center rounded-lg px-2.5 py-[5px] text-[14.75px] leading-none tracking-[-0.3px] transition-colors ' +
                       (isActive
                         ? 'bg-text-primary text-canvas'
                         : 'text-canvas/80 hover:bg-text-primary hover:text-canvas')

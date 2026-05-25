@@ -591,3 +591,9 @@ export const DISCIPLINE_LABELS: Record<Discipline, string> = {
   spatial: 'Spatial & retail',
   'service-design': 'Service design',
 }
+
+/**
+ * Master, ordered list of every discipline (mirrors the schema order). Used to
+ * render the full tag set on a case study, highlighting the selected ones.
+ */
+export const ALL_DISCIPLINES = Object.keys(DISCIPLINE_LABELS) as Discipline[]

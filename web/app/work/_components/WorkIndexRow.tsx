@@ -56,9 +56,12 @@ export function WorkIndexRow({card}: Props) {
               ))}
             </div>
 
-            {/* Mobile (< md): 2-up grid, each card uses its own aspect. */}
+            {/* Mobile (< md): show only the first two items in a 2-up grid.
+                This block is itself md:hidden, so we slice rather than rely on
+                per-item responsive classes (which couldn't re-reveal them on
+                desktop). The desktop strip above renders the full set. */}
             <div className="grid grid-cols-2 gap-2.5 md:hidden">
-              {media.map((m, i) => (
+              {media.slice(0, 2).map((m, i) => (
                 <WorkIndexMediaCard
                   key={mediaKey(m, i)}
                   media={m}

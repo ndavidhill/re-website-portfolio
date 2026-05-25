@@ -53,9 +53,9 @@ export function WorkCard({card, showBadge = false, label}: Props) {
 
       <span
         aria-hidden="true"
-        className="absolute left-1/2 top-1/2 flex h-[46px] -translate-x-1/2 -translate-y-1/2 items-center rounded-full bg-white/40 px-2.5 text-[#333] backdrop-blur-md transition-[background-color,color,transform] duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] group-hover:bg-white/70 group-hover:text-[#0a0a0a]"
+        className="absolute left-1/2 top-1/2 flex max-w-[calc(100%-24px)] -translate-x-1/2 -translate-y-1/2 items-center justify-center rounded-full bg-white/40 px-3 py-1 text-[#333] backdrop-blur-md transition-[background-color,color,transform] duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] group-hover:bg-white/70 group-hover:text-[#0a0a0a]"
       >
-        <span className="text-[29.5px] font-medium leading-[33px] tracking-[-0.6px] [text-box-edge:cap_alphabetic] [text-box-trim:trim-both]">
+        <span className="min-w-0 truncate text-[12px] font-medium leading-none tracking-[-0.2px]">
           {pillText}
         </span>
       </span>
