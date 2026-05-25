@@ -95,7 +95,9 @@ export default defineType({
       group: 'overview',
       of: [{type: 'string'}],
       options: {
-        layout: 'tags',
+        // Default (checkbox) layout renders the list below as a picker. Avoid
+        // `layout: 'tags'` — that's a free-text input and ignores the list,
+        // which let editors hand-type inconsistent values.
         list: [
           {title: 'Brand identity', value: 'brand-identity'},
           {title: 'Strategy', value: 'strategy'},
