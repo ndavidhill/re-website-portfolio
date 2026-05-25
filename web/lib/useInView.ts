@@ -3,15 +3,17 @@
 import {useEffect, useRef, useState} from 'react'
 
 /**
- * Tracks whether the referenced element is within `rootMargin` of the viewport.
+ * Latches `true` the first time the referenced element comes within `rootMargin`
+ * of the viewport, then stops observing — so it never flips back to `false`.
  *
- * Used to mount/unmount heavy media (Vimeo iframes, autoplaying <video>) so only
- * clips near the viewport are live. Mobile browsers cap the number of
- * concurrently loading/playing inline videos — eagerly mounting every embed on a
- * video-heavy page leaves the later ones blank. Gating on view loads them
- * one-at-a-time as the user scrolls and frees decoders once they're far away.
+ * Used to mount heavy media (Vimeo iframes, autoplaying <video>) lazily without
+ * churn: clips load progressively as the user approaches them (avoiding the
+ * mobile concurrent-load cap that left eagerly-mounted embeds blank) but, once
+ * mounted, stay mounted so scrolling back doesn't reload them. The generous
+ * default margin preloads roughly a screen ahead so they're ready before they
+ * scroll into view, avoiding pop-in.
  */
-export function useInView<T extends Element>(rootMargin = '400px') {
+export function useInView<T extends Element>(rootMargin = '1000px') {
   const ref = useRef<T>(null)
   const [inView, setInView] = useState(false)
 
@@ -19,7 +21,12 @@ export function useInView<T extends Element>(rootMargin = '400px') {
     const el = ref.current
     if (!el) return
     const io = new IntersectionObserver(
-      (entries) => setInView(entries[0]?.isIntersecting ?? false),
+      (entries) => {
+        if (entries[0]?.isIntersecting) {
+          setInView(true)
+          io.disconnect() // Latch — once loaded, stay loaded.
+        }
+      },
       {rootMargin},
     )
     io.observe(el)

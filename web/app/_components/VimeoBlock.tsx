@@ -41,7 +41,7 @@ export function VimeoBlock({
   aspectRatio,
   poster,
 }: Props) {
-  const {ref: containerRef, inView} = useInView<HTMLDivElement>('400px')
+  const {ref: containerRef, inView} = useInView<HTMLDivElement>()
   const iframeRef = useRef<HTMLIFrameElement>(null)
   const playerRef = useRef<VimeoPlayer | null>(null)
   const [muted, setMuted] = useState(true)
@@ -131,9 +131,9 @@ export function VimeoBlock({
             className="absolute inset-0 h-full w-full object-cover"
           />
         )}
-        {/* Mount the embed only while near the viewport — mobile browsers cap
-            concurrent inline videos, so eager-loading every clip leaves later
-            ones blank. */}
+        {/* Mount the embed once it nears the viewport (then it stays) — loading
+            every clip up front trips mobile's concurrent-video cap and leaves
+            later ones blank. */}
         {inView && (
           <iframe
             ref={iframeRef}

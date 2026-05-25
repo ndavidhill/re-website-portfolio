@@ -14,12 +14,13 @@ interface Props {
 }
 
 /**
- * Cover-filling background video (Vimeo/YouTube embed or MP4) that only mounts
- * while near the viewport, so mobile browsers' concurrent-video caps don't leave
- * later clips blank. Must be placed inside a `relative` (positioned) parent.
+ * Cover-filling background video (Vimeo/YouTube embed or MP4) that mounts once
+ * it nears the viewport and then stays mounted — loading clips progressively
+ * (not all at once) keeps mobile under its concurrent-video cap, which otherwise
+ * leaves later clips blank. Must be placed inside a `relative` parent.
  */
 export function LazyCoverVideo({url, fileUrl, poster, title}: Props) {
-  const {ref, inView} = useInView<HTMLDivElement>('400px')
+  const {ref, inView} = useInView<HTMLDivElement>()
   const embed = url ? toEmbedUrl(url) : null
 
   return (
