@@ -1,12 +1,17 @@
 'use client'
 
 import {useEffect, useState} from 'react'
+import {createPortal} from 'react-dom'
 import Link from 'next/link'
 import {NAV_ITEMS} from './nav-items'
 
 /**
  * Mobile-only navigation: a hamburger button that opens a full-screen overlay
  * of the primary nav. Hidden at md+ where the desktop pill nav takes over.
+ *
+ * The overlay is portalled to <body> so it isn't confined by the SiteHeader's
+ * transform (an ancestor transform makes `position: fixed` resolve against that
+ * ancestor instead of the viewport).
  */
 export function MobileNav({activeHref}: {activeHref?: string}) {
   const [open, setOpen] = useState(false)
@@ -55,12 +60,13 @@ export function MobileNav({activeHref}: {activeHref?: string}) {
         </svg>
       </button>
 
-      {open && (
-        <div
-          id="mobile-menu"
-          className="fixed inset-0 z-[60] flex flex-col bg-canvas px-6 py-5"
-        >
-          <div className="flex items-center justify-end">
+      {open &&
+        createPortal(
+          <div
+            id="mobile-menu"
+            className="fixed inset-0 z-[60] flex flex-col bg-canvas px-6 py-5"
+          >
+            <div className="flex items-center justify-end">
             <button
               type="button"
               aria-label="Close menu"
@@ -102,8 +108,9 @@ export function MobileNav({activeHref}: {activeHref?: string}) {
               )
             })}
           </nav>
-        </div>
-      )}
+          </div>,
+          document.body,
+        )}
     </div>
   )
 }
