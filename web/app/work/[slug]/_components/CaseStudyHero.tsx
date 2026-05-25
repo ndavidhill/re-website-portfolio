@@ -68,11 +68,16 @@ export function CaseStudyHero({caseStudy}: Props) {
         {/* All disciplines are always shown; the ones selected for this project
             are highlighted ("on"), the rest stay visible but muted ("off"). */}
         {(() => {
-          const selected = new Set(disciplines ?? [])
+          // Stored disciplines vary in format (slug vs Title Case vs Sentence
+          // case label), so match on a normalized key rather than ===.
+          const norm = (s: string) => s.toLowerCase().replace(/[^a-z0-9]+/g, '')
+          const selected = new Set((disciplines ?? []).map(norm))
           return (
             <ul className="flex flex-wrap gap-1.5">
               {ALL_DISCIPLINES.map((discipline) => {
-                const active = selected.has(discipline)
+                const active =
+                  selected.has(norm(discipline)) ||
+                  selected.has(norm(DISCIPLINE_LABELS[discipline]))
                 return (
                   <li
                     key={discipline}
