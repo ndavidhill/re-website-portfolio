@@ -138,6 +138,8 @@ export interface PairVideo {
   videoFile?: {asset?: {url?: string; mimeType?: string}}
   poster?: SanityImage
   alt?: string
+  /** Derived (not from Sanity): Vimeo thumbnail used as a poster fallback. */
+  posterUrl?: string
 }
 
 export interface MediaBlock {
@@ -183,6 +185,8 @@ export interface VideoBlock {
   audioControl?: boolean
   /** Optional aspect ratio override, e.g. "16/9" or "9/16". */
   aspectRatio?: string
+  /** Derived (not from Sanity): Vimeo thumbnail used as a poster fallback. */
+  posterUrl?: string
 }
 
 export interface PortableTextBlock {
@@ -478,7 +482,64 @@ export async function getCaseStudyBySlug(slug: string): Promise<CaseStudy | null
   const result = await sanityFetch<CaseStudy>(caseStudyBySlugQuery, {slug}, [
     `caseStudy:${slug}`,
   ])
-  return result ?? null
+  if (!result) return null
+  await attachVideoPosters(result)
+  return result
+}
+
+/**
+ * Fetches a Vimeo clip's own thumbnail via the public oEmbed API. Cached for a
+ * day (thumbnails are stable). Returns undefined for non-Vimeo URLs or failures.
+ */
+async function fetchVimeoThumbnail(url: string): Promise<string | undefined> {
+  let hostname: string
+  try {
+    hostname = new URL(url).hostname
+  } catch {
+    return undefined
+  }
+  if (!hostname.includes('vimeo.com')) return undefined
+  try {
+    const endpoint = `https://vimeo.com/api/oembed.json?url=${encodeURIComponent(url)}&width=1280`
+    const res = await fetch(endpoint, {next: {revalidate: 86400}})
+    if (!res.ok) return undefined
+    const data = (await res.json()) as {thumbnail_url?: unknown}
+    return typeof data.thumbnail_url === 'string' ? data.thumbnail_url : undefined
+  } catch {
+    return undefined
+  }
+}
+
+/**
+ * Auto-poster pipeline: for Vimeo video blocks/slots with no manual poster (and
+ * no self-hosted file), derive a `posterUrl` from Vimeo so a still frame shows
+ * instantly while the embed loads. Mutates the body in place; runs lookups in
+ * parallel and is a no-op when nothing needs a poster.
+ */
+async function attachVideoPosters(cs: CaseStudy): Promise<void> {
+  if (!cs.body) return
+  const tasks: Promise<void>[] = []
+
+  const enrich = (v: VideoBlock | PairVideo) => {
+    if (!v.url || v.poster || v.videoFile?.asset?.url) return
+    tasks.push(
+      fetchVimeoThumbnail(v.url).then((thumb) => {
+        if (thumb) v.posterUrl = thumb
+      }),
+    )
+  }
+
+  for (const block of cs.body) {
+    if (block._type === 'videoBlock') {
+      enrich(block)
+    } else if (block._type === 'mediaBlock' && block.images) {
+      for (const item of block.images) {
+        if (item._type === 'pairVideo') enrich(item)
+      }
+    }
+  }
+
+  await Promise.all(tasks)
 }
 
 export async function getAllCaseStudySlugs(): Promise<string[]> {

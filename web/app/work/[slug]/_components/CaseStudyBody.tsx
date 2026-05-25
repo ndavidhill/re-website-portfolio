@@ -53,7 +53,7 @@ function MediaSlot({
 
   const posterSrc = item.poster
     ? urlForImage(item.poster).width(1600).url()
-    : undefined
+    : item.posterUrl
 
   // Viewport-gated so stacked/paired videos don't all load at once on mobile.
   return (
@@ -169,7 +169,11 @@ function VideoBlockView({
       caption={block.caption}
       audioControl={block.audioControl}
       aspectRatio={block.aspectRatio}
-      poster={block.poster ? urlForImage(block.poster).width(1600).url() : undefined}
+      poster={
+        block.poster
+          ? urlForImage(block.poster).width(1600).url()
+          : block.posterUrl
+      }
     />
   )
 }
