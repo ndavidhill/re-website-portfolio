@@ -1,4 +1,5 @@
 import type {Metadata} from 'next'
+import Image from 'next/image'
 import {
   getFeaturedCaseStudies,
   getHomePage,
@@ -167,13 +168,23 @@ function TldrSection({home}: {home: Home}) {
                 The questions we answer
               </h3>
               {home.questions && home.questions.length > 0 && (
-                <div className="mt-6 space-y-8">
-                  {home.questions.map((q) => (
-                    <div key={q._key}>
-                      <h4 className="text-base font-medium leading-[18px] tracking-[-0.176px] text-text-primary">
-                        {q.label}
-                      </h4>
-                      <p className="text-lg leading-6 tracking-[-0.27px] text-text-faint">
+                <div className="mt-6 flex flex-col gap-3">
+                  {home.questions.map((q, i) => (
+                    <div
+                      key={q._key}
+                      className="flex flex-col gap-2.5 rounded-md bg-surface p-[14px]"
+                    >
+                      <div className="flex items-center gap-2">
+                        <span className="w-5 text-sm font-medium leading-5 text-text-primary">
+                          {(i + 1).toString().padStart(2, '0')}
+                        </span>
+                        <h4 className="flex-1 text-sm font-medium leading-5 text-text-primary">
+                          {q.label}
+                        </h4>
+                      </div>
+                      {/* `whitespace-pre-line` renders the line breaks stored
+                          in the body field as separate question lines. */}
+                      <p className="whitespace-pre-line text-sm leading-[22px] text-text-secondary">
                         {q.body}
                       </p>
                     </div>
@@ -245,7 +256,7 @@ function WorkSection({
   featured: Awaited<ReturnType<typeof getFeaturedCaseStudies>>
 }) {
   return (
-    <section className="flex flex-col gap-12">
+    <section className="flex flex-col gap-12 md:gap-[90px]">
       <div className="grid grid-cols-1 gap-x-0 gap-y-8 xl:grid-cols-2">
         <div className="border-t border-border pt-5">
           <AnimatedHeading
@@ -265,6 +276,24 @@ function WorkSection({
                 <p className={`mt-6 text-text-secondary ${type.bodyLarge}`}>
                   {block.body}
                 </p>
+                {block.images && block.images.length > 0 && (
+                  <div className="mt-6 flex gap-3">
+                    {block.images.map((img, j) => (
+                      <div
+                        key={j}
+                        className="relative aspect-[4/3] flex-1 overflow-hidden rounded-[6px] bg-surface"
+                      >
+                        <Image
+                          src={urlForImage(img).width(900).auto('format').url()}
+                          alt={img.alt ?? ''}
+                          fill
+                          sizes="(min-width: 1280px) 16vw, 30vw"
+                          className="object-cover"
+                        />
+                      </div>
+                    ))}
+                  </div>
+                )}
               </div>
             </Reveal>
           ))}

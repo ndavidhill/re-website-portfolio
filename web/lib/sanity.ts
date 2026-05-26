@@ -276,6 +276,8 @@ export interface HomeWorkIntroBlock {
   _key: string
   heading: string
   body: string
+  /** Up to three images, rendered in a row below the body. */
+  images?: SanityImage[]
 }
 
 export interface HomeAward {
@@ -453,7 +455,7 @@ export const homePageQuery = groq`
     capabilities,
     questions[]{_key, label, body},
     clients[]->{_id, name, url},
-    workIntroBlocks[]{_key, heading, body},
+    workIntroBlocks[]{_key, heading, body, images[]{..., asset->}},
     newsroomIntro,
     awardsHeading,
     awards[]{_key, description, award, year},

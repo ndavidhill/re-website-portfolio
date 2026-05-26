@@ -102,6 +102,20 @@ export default defineType({
           fields: [
             {name: 'heading', type: 'string', title: 'Heading'},
             {name: 'body', type: 'text', rows: 4, title: 'Body'},
+            {
+              name: 'images',
+              title: 'Images',
+              type: 'array',
+              description: 'Up to three images, shown in a row below the body.',
+              validation: (Rule) => Rule.max(3),
+              of: [
+                {
+                  type: 'image',
+                  options: {hotspot: true},
+                  fields: [{name: 'alt', type: 'string', title: 'Alt text'}],
+                },
+              ],
+            },
           ],
           preview: {select: {title: 'heading', subtitle: 'body'}},
         },
