@@ -13,8 +13,8 @@ interface Props {
   alt: string
   /** Pill label shown on hover. Defaults to "View project". */
   pillText?: string
-  /** Skip the flex sizing (used by the mobile 2-up grid). */
-  noFlex?: boolean
+  /** Extra classes (e.g. responsive hiding for overflow items on mobile). */
+  className?: string
 }
 
 /**
@@ -24,14 +24,15 @@ interface Props {
  *
  * Hover: the card's `flex-grow` increases from 1 → 2, widening it within
  * the row while siblings shrink to make room (daisychain-style). The
- * glassmorphic "View project" pill fades in.
+ * glassmorphic "View project" pill fades in. `flex-1` is a no-op when the
+ * parent is a grid, so the same card works in both layouts.
  */
 export function WorkIndexMediaCard({
   media,
   href,
   alt,
   pillText = 'View project',
-  noFlex = false,
+  className = '',
 }: Props) {
   const ratioCss = computeAspectRatioCss(media)
 
@@ -40,10 +41,8 @@ export function WorkIndexMediaCard({
       href={href}
       aria-label={alt}
       className={
-        'group relative block min-w-0 overflow-hidden rounded-[4px] bg-surface md:rounded-[12px] ' +
-        (noFlex
-          ? ''
-          : 'flex-1 transition-[flex-grow] duration-500 ease-[cubic-bezier(0.16,1,0.3,1)] hover:[flex-grow:2]')
+        'group relative block min-w-0 flex-1 overflow-hidden rounded-[4px] bg-surface transition-[flex-grow] duration-500 ease-[cubic-bezier(0.16,1,0.3,1)] hover:[flex-grow:2] md:rounded-[12px] ' +
+        className
       }
       style={{aspectRatio: ratioCss}}
     >

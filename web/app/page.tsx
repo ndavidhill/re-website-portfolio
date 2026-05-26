@@ -9,6 +9,7 @@ import {
 import {SiteHeader} from '@/components/SiteHeader'
 import {ContactAndFooter} from '@/components/ContactAndFooter'
 import {Reveal} from '@/components/Reveal'
+import {FlipOnResize} from '@/components/FlipOnResize'
 import {AnimatedHeading} from '@/components/AnimatedHeading'
 import {type} from '@/lib/design'
 import {StickyHomeVideo} from './_components/StickyHomeVideo'
@@ -98,7 +99,7 @@ function TldrSection({home}: {home: Home}) {
 
       <div className="flex flex-col gap-12">
         {/* Contact + Capabilities row */}
-        <div className="grid grid-cols-1 gap-8 md:grid-cols-2">
+        <FlipOnResize className="grid grid-cols-1 gap-8 md:grid-cols-2">
           <Reveal delay={0.06}>
             <div className="border-t border-border pt-5">
               <h3 className="text-base font-medium leading-[18px] tracking-[-0.176px] text-text-secondary">
@@ -158,10 +159,10 @@ function TldrSection({home}: {home: Home}) {
               )}
             </div>
           </Reveal>
-        </div>
+        </FlipOnResize>
 
         {/* Questions + Clients row */}
-        <div className="grid grid-cols-1 gap-8 md:grid-cols-2">
+        <FlipOnResize className="grid grid-cols-1 gap-8 md:grid-cols-2">
           <Reveal delay={0.06}>
             <div className="border-t border-border pt-5">
               <h3 className="text-base font-medium leading-[18px] tracking-[-0.176px] text-text-secondary">
@@ -242,7 +243,7 @@ function TldrSection({home}: {home: Home}) {
               )}
             </div>
           </Reveal>
-        </div>
+        </FlipOnResize>
       </div>
     </section>
   )

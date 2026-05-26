@@ -1,4 +1,5 @@
 import {Reveal} from '@/components/Reveal'
+import {FlipOnResize} from '@/components/FlipOnResize'
 import {type} from '@/lib/design'
 import type {CaseStudyCard, GridMediaItem} from '@/lib/sanity'
 import {WorkIndexMediaCard} from './WorkIndexMediaCard'
@@ -41,37 +42,21 @@ export function WorkIndexRow({card}: Props) {
         </header>
 
         {media.length > 0 && (
-          <>
-            {/* Desktop (md+): cards share row width via flex-1 but keep their
-                intrinsic heights via aspect-ratio. Top-aligned so portrait
-                cards tower over landscape siblings. */}
-            <div className="hidden gap-2.5 md:flex md:items-start">
-              {media.map((m, i) => (
-                <WorkIndexMediaCard
-                  key={mediaKey(m, i)}
-                  media={m}
-                  href={href}
-                  alt={m.alt ?? `${card.client} — ${card.title}`}
-                />
-              ))}
-            </div>
-
-            {/* Mobile (< md): show only the first two items in a 2-up grid.
-                This block is itself md:hidden, so we slice rather than rely on
-                per-item responsive classes (which couldn't re-reveal them on
-                desktop). The desktop strip above renders the full set. */}
-            <div className="grid grid-cols-2 gap-2.5 md:hidden">
-              {media.slice(0, 2).map((m, i) => (
-                <WorkIndexMediaCard
-                  key={mediaKey(m, i)}
-                  media={m}
-                  href={href}
-                  alt={m.alt ?? `${card.client} — ${card.title}`}
-                  noFlex
-                />
-              ))}
-            </div>
-          </>
+          // Unified responsive strip: 2-up grid on mobile (first two items
+          // only), daisy-chain flex on md+. Wrapped in FlipOnResize so the
+          // shared items smoothly tween between the two layouts at the
+          // breakpoint. Items 3+ are hidden on mobile via per-item classes.
+          <FlipOnResize className="grid grid-cols-2 items-start gap-2.5 md:flex md:gap-2.5">
+            {media.map((m, i) => (
+              <WorkIndexMediaCard
+                key={mediaKey(m, i)}
+                media={m}
+                href={href}
+                alt={m.alt ?? `${card.client} — ${card.title}`}
+                className={i >= 2 ? 'hidden md:block' : ''}
+              />
+            ))}
+          </FlipOnResize>
         )}
       </article>
     </Reveal>
