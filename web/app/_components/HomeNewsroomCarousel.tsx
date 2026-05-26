@@ -89,7 +89,7 @@ export function HomeNewsroomCarousel({articles}: Props) {
       </div>
 
       {/* Progress bar */}
-      <div className="mx-auto h-[9px] w-[1110px] max-w-full rounded-full bg-[#2a2a2a]">
+      <div className="mx-auto h-[9px] w-[1110px] max-w-full rounded-full bg-border">
         <motion.div
           className="h-full rounded-full bg-text-secondary"
           style={{width: `${Math.max(8, progress * 100)}%`}}

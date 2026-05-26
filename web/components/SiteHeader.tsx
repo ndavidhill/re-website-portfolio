@@ -10,6 +10,7 @@ import {
 } from 'framer-motion'
 import {ReLogo} from './ReLogo'
 import {MobileNav} from './MobileNav'
+import {ThemeToggle} from './ThemeToggle'
 import {NAV_ITEMS} from './nav-items'
 
 // Reveal once the user scrolls up; hide once they scroll down past the header.
@@ -58,30 +59,37 @@ export function SiteHeader({activeHref}: {activeHref?: string}) {
           <ReLogo className="h-[30px] w-[50px]" />
         </Link>
 
-        <nav aria-label="Primary" className="hidden md:block">
-          <ul className="flex h-[32px] items-center gap-1.5 rounded-lg bg-text-muted/90 px-1 backdrop-blur-sm">
-            {NAV_ITEMS.map((item) => {
-              const isActive = !!activeHref && activeHref.startsWith(item.href)
-              return (
-                <li key={item.href}>
-                  <Link
-                    href={item.href}
-                    className={
-                      'flex items-center justify-center rounded-lg px-2.5 py-[5px] text-[14.75px] leading-none tracking-[-0.3px] transition-colors ' +
-                      (isActive
-                        ? 'bg-text-primary text-canvas'
-                        : 'text-canvas/80 hover:bg-text-primary hover:text-canvas')
-                    }
-                  >
-                    {item.label}
-                  </Link>
-                </li>
-              )
-            })}
-          </ul>
-        </nav>
+        {/* Right cluster — DOM order [pill][toggle][hamburger] gives the right
+            placement in both layouts: desktop shows pill + toggle (toggle right
+            of the nav); mobile shows toggle + hamburger (toggle to its left). */}
+        <div className="flex items-center gap-3">
+          <nav aria-label="Primary" className="hidden md:block">
+            <ul className="flex h-[32px] items-center gap-1.5 rounded-lg bg-text-muted/90 px-1 backdrop-blur-sm">
+              {NAV_ITEMS.map((item) => {
+                const isActive = !!activeHref && activeHref.startsWith(item.href)
+                return (
+                  <li key={item.href}>
+                    <Link
+                      href={item.href}
+                      className={
+                        'flex items-center justify-center rounded-lg px-2.5 py-[5px] text-[14.75px] leading-none tracking-[-0.3px] transition-colors ' +
+                        (isActive
+                          ? 'bg-text-primary text-canvas'
+                          : 'text-canvas/80 hover:bg-text-primary hover:text-canvas')
+                      }
+                    >
+                      {item.label}
+                    </Link>
+                  </li>
+                )
+              })}
+            </ul>
+          </nav>
 
-        <MobileNav activeHref={activeHref} />
+          <ThemeToggle />
+
+          <MobileNav activeHref={activeHref} />
+        </div>
       </div>
     </motion.header>
   )

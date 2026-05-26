@@ -36,7 +36,7 @@ export function WorkIndexRow({card}: Props) {
         <header className="flex flex-wrap items-baseline gap-x-3 pr-[15px]">
           <span className={`${type.h2} text-text-muted`}>{card.client}</span>
           {card.tagline && (
-            <span className={`${type.h2} text-[#cccdcb]`}>{card.tagline}</span>
+            <span className={`${type.h2} text-text-secondary`}>{card.tagline}</span>
           )}
         </header>
 

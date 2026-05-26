@@ -59,6 +59,14 @@ export default function RootLayout({
       className={`${graphik.variable} h-full antialiased`}
     >
       <head>
+        {/* Apply the saved theme before paint so there's no flash. Dark is the
+            default (no attribute); only light needs setting. */}
+        <script
+          dangerouslySetInnerHTML={{
+            __html:
+              "try{if(localStorage.getItem('theme')==='light')document.documentElement.dataset.theme='light'}catch(e){}",
+          }}
+        />
         {/* Color tokens emitted from lib/design.ts — edit there. */}
         <style dangerouslySetInnerHTML={{__html: designVariablesCss()}} />
       </head>

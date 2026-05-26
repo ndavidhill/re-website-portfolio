@@ -114,6 +114,7 @@ export const scroll = {
 // COLORS — single source of truth. Emitted as CSS variables at runtime.
 // ─────────────────────────────────────────────────────────────────────────────
 
+/** Dark palette — the default theme. */
 export const colors = {
   canvas: '#000000',
   surface: '#1d1d1d',
@@ -126,20 +127,47 @@ export const colors = {
 } as const
 
 /**
- * Returns a CSS rule that sets the `--color-*` custom properties used by
- * Tailwind's theme tokens (defined in `globals.css`). Inject the result in
- * `<head>` via a `<style>` tag in the root layout — that becomes the runtime
- * source of truth so editing `colors` above updates the whole app.
+ * Light palette — mapped from the Figma "Foundations" token doc:
+ * UI/canvas #ffffff, UI/surface #f6f6f6, UI/border #b4b4b4,
+ * Content/primary #1d1d1d, Content/secondary #525252. surfaceDeep, textMuted
+ * and textFaint have no 1:1 Figma token for our names, so they're derived to
+ * keep the same visual relationships on a light ground.
+ */
+export const lightColors: Record<keyof typeof colors, string> = {
+  canvas: '#ffffff',
+  surface: '#f6f6f6',
+  surfaceDeep: '#ededed',
+  textPrimary: '#1d1d1d',
+  textSecondary: '#525252',
+  textMuted: '#767676',
+  textFaint: '#a3a3a3',
+  border: '#b4b4b4',
+}
+
+function varBlock(palette: Record<keyof typeof colors, string>): string {
+  return `  --color-canvas: ${palette.canvas};
+  --color-surface: ${palette.surface};
+  --color-surface-deep: ${palette.surfaceDeep};
+  --color-text-primary: ${palette.textPrimary};
+  --color-text-secondary: ${palette.textSecondary};
+  --color-text-muted: ${palette.textMuted};
+  --color-text-faint: ${palette.textFaint};
+  --color-border: ${palette.border};`
+}
+
+/**
+ * CSS that sets the `--color-*` custom properties consumed by Tailwind's theme
+ * tokens (see `globals.css`). Dark is the default on `:root`; light applies when
+ * `<html data-theme="light">`. Injected in `<head>` from the root layout so this
+ * stays the runtime source of truth.
  */
 export function designVariablesCss(): string {
   return `:root {
-  --color-canvas: ${colors.canvas};
-  --color-surface: ${colors.surface};
-  --color-surface-deep: ${colors.surfaceDeep};
-  --color-text-primary: ${colors.textPrimary};
-  --color-text-secondary: ${colors.textSecondary};
-  --color-text-muted: ${colors.textMuted};
-  --color-text-faint: ${colors.textFaint};
-  --color-border: ${colors.border};
+  color-scheme: dark;
+${varBlock(colors)}
+}
+:root[data-theme="light"] {
+  color-scheme: light;
+${varBlock(lightColors)}
 }`
 }

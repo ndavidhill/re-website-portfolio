@@ -29,3 +29,35 @@ body {
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 }
+
+/* Theme toggle: the crescent moon (exact Figma path) is always drawn; switching
+   to light grows a disc from its centre that fills the crescent into a full
+   circle. Both use currentColor, which flips with the theme. */
+.tt-fill {
+  transform-box: fill-box;
+  transform-origin: center;
+  transform: scale(0);
+  transition: transform 0.55s cubic-bezier(0.16, 1, 0.3, 1);
+}
+:root[data-theme='light'] .tt-fill {
+  transform: scale(1);
+}
+
+/* Whole-site cross-fade — only while toggling (class added for ~0.5s), so it
+   never interferes with hover/navigation transitions. */
+html.theme-anim,
+html.theme-anim * {
+  transition:
+    background-color 0.45s ease,
+    border-color 0.45s ease,
+    color 0.45s ease,
+    fill 0.45s ease !important;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .tt-fill,
+  html.theme-anim,
+  html.theme-anim * {
+    transition: none !important;
+  }
+}
