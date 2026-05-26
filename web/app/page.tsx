@@ -273,7 +273,7 @@ function WorkSection({
                 <h3 className="text-2xl font-medium leading-6 tracking-[-0.4px] text-text-primary">
                   {block.heading}
                 </h3>
-                <p className={`mt-6 text-text-secondary ${type.bodyLarge}`}>
+                <p className={`mt-6 max-w-[550px] text-text-secondary ${type.bodyLarge}`}>
                   {block.body}
                 </p>
                 {block.images && block.images.length > 0 && (
