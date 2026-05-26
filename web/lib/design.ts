@@ -136,11 +136,11 @@ export const colors = {
 export const lightColors: Record<keyof typeof colors, string> = {
   canvas: '#ffffff',
   surface: '#f6f6f6',
-  surfaceDeep: '#ededed',
+  surfaceDeep: '#e4e4e4',
   textPrimary: '#1d1d1d',
   textSecondary: '#525252',
   textMuted: '#767676',
-  textFaint: '#a3a3a3',
+  textFaint: '#8f8f8f',
   border: '#b4b4b4',
 }
 

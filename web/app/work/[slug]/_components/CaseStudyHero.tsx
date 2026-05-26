@@ -85,7 +85,7 @@ export function CaseStudyHero({caseStudy}: Props) {
                     className={
                       'flex h-6 items-center rounded-md px-2 text-xs font-medium leading-4 transition-colors ' +
                       (active
-                        ? 'border border-transparent bg-white/15 text-text-primary'
+                        ? 'border border-transparent bg-text-primary/10 text-text-primary'
                         : 'border border-border text-text-faint')
                     }
                   >
