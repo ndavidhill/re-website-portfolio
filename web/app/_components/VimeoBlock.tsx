@@ -48,6 +48,14 @@ export function VimeoBlock({
   const [aspect, setAspect] = useState<string>(
     normaliseAspect(aspectRatio) ?? INITIAL_ASPECT,
   )
+  // Poster sits on top of the iframe and fades out only after the embed has
+  // had a chance to paint its first frame — otherwise the iframe's own blank
+  // load state shows as a white flash on light backgrounds between the poster
+  // and the first video frame.
+  const [posterHidden, setPosterHidden] = useState(false)
+  const hidePosterSoon = () => {
+    setTimeout(() => setPosterHidden(true), 250)
+  }
 
   const embedUrl = toEmbedUrl(url)
 
@@ -122,18 +130,10 @@ export function VimeoBlock({
           isolation: 'isolate',
         }}
       >
-        {poster && (
-          // eslint-disable-next-line @next/next/no-img-element
-          <img
-            src={poster}
-            alt=""
-            aria-hidden="true"
-            className="absolute inset-0 h-full w-full object-cover"
-          />
-        )}
         {/* Mount the embed once it nears the viewport (then it stays) — loading
             every clip up front trips mobile's concurrent-video cap and leaves
-            later ones blank. */}
+            later ones blank. Rendered before the poster so the poster (next
+            sibling, same `absolute inset-0`) sits on top in stacking order. */}
         {inView && (
           <iframe
             ref={iframeRef}
@@ -142,7 +142,20 @@ export function VimeoBlock({
             loading="lazy"
             allow="autoplay; fullscreen; picture-in-picture"
             allowFullScreen
+            onLoad={hidePosterSoon}
             className="absolute inset-0 block h-full w-full"
+          />
+        )}
+        {poster && (
+          // eslint-disable-next-line @next/next/no-img-element
+          <img
+            src={poster}
+            alt=""
+            aria-hidden="true"
+            className={
+              'absolute inset-0 h-full w-full object-cover transition-opacity duration-300 ' +
+              (posterHidden ? 'pointer-events-none opacity-0' : 'opacity-100')
+            }
           />
         )}
         {audioControl && inView && (
