@@ -21,6 +21,7 @@ type VimeoPlayer = {
   getMuted: () => Promise<boolean>
   getVideoWidth: () => Promise<number>
   getVideoHeight: () => Promise<number>
+  on: (event: string, handler: () => void) => void
   destroy: () => Promise<unknown>
 }
 
@@ -48,14 +49,13 @@ export function VimeoBlock({
   const [aspect, setAspect] = useState<string>(
     normaliseAspect(aspectRatio) ?? INITIAL_ASPECT,
   )
-  // Poster sits on top of the iframe and fades out only after the embed has
-  // had a chance to paint its first frame — otherwise the iframe's own blank
-  // load state shows as a white flash on light backgrounds between the poster
-  // and the first video frame.
+  // Poster sits on top of the iframe and is removed only when the Vimeo SDK
+  // reports playback has actually begun. `iframe.onLoad` is too early — it
+  // fires once the embed's document has parsed, but the player still needs
+  // hundreds of ms after that to paint its first frame. Hiding at onLoad
+  // crossfades the poster out through a still-blank iframe, which on a white
+  // canvas reads as a worse flash than no poster at all.
   const [posterHidden, setPosterHidden] = useState(false)
-  const hidePosterSoon = () => {
-    setTimeout(() => setPosterHidden(true), 250)
-  }
 
   const embedUrl = toEmbedUrl(url)
 
@@ -63,11 +63,6 @@ export function VimeoBlock({
     if (!inView) return
     if (!iframeRef.current) return
     if (!isVimeoUrl(url)) return
-
-    // Skip SDK entirely if the editor set an explicit aspect AND we don't need
-    // it for audio control. Saves the import + handshake.
-    const explicitAspect = normaliseAspect(aspectRatio)
-    if (explicitAspect && !audioControl) return
 
     let cancelled = false
     let cleanup: (() => void) | undefined
@@ -79,6 +74,7 @@ export function VimeoBlock({
 
       // Auto-detect aspect when no override given. Vimeo resolves these once
       // metadata is parsed, so we await both then update once.
+      const explicitAspect = normaliseAspect(aspectRatio)
       if (!explicitAspect) {
         Promise.all([player.getVideoWidth(), player.getVideoHeight()])
           .then(([w, h]) => {
@@ -92,6 +88,12 @@ export function VimeoBlock({
           if (!cancelled) setMuted(m)
         })
       }
+
+      // The first `play` event fires the moment the player has decoded and
+      // begun rendering frames — clean crossfade target.
+      player.on('play', () => {
+        if (!cancelled) setPosterHidden(true)
+      })
 
       cleanup = () => {
         player.destroy().catch(() => {})
@@ -142,7 +144,6 @@ export function VimeoBlock({
             loading="lazy"
             allow="autoplay; fullscreen; picture-in-picture"
             allowFullScreen
-            onLoad={hidePosterSoon}
             className="absolute inset-0 block h-full w-full"
           />
         )}
@@ -153,7 +154,7 @@ export function VimeoBlock({
             alt=""
             aria-hidden="true"
             className={
-              'absolute inset-0 h-full w-full object-cover transition-opacity duration-300 ' +
+              'absolute inset-0 h-full w-full object-cover transition-opacity duration-500 ' +
               (posterHidden ? 'pointer-events-none opacity-0' : 'opacity-100')
             }
           />
