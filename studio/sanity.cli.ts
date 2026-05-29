@@ -11,5 +11,11 @@ export default defineCliConfig({
   // prompt. Globally-unique name ("redesign" was already taken by another org).
   // Live at https://re-design-ndavidhill.sanity.studio
   studioHost: 're-design-ndavidhill',
-  autoUpdates: true,
+  deployment: {
+    // Pin the assigned appId so `sanity deploy` doesn't re-prompt for it.
+    // `autoUpdates` lives here in current CLI versions; the top-level
+    // `autoUpdates` was deprecated.
+    appId: 'scef7mlxmshpjouxyhz4p07e',
+    autoUpdates: true,
+  },
 })
