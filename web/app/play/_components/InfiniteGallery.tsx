@@ -1,9 +1,11 @@
 'use client'
 
 import {useEffect, useRef} from 'react'
+import Image from 'next/image'
 import {gsap} from 'gsap'
 import {Observer} from 'gsap/Observer'
 import {useReducedMotion} from 'framer-motion'
+import {urlForImage, type SanityImage} from '@/lib/sanity'
 
 // Plugin registration is idempotent — safe in the client bundle.
 if (typeof window !== 'undefined') {
@@ -14,12 +16,24 @@ export interface GalleryItem {
   caption: string
   /** CSS aspect-ratio string — drives item width given the shared row height. */
   ratio: '4/5' | '1/1' | '16/9'
-  /** Background colour of the placeholder tile. */
+  /** Fallback tile colour when no media is present. */
   color: string
+  /** Optional Sanity image (takes precedence over video). */
+  image?: SanityImage
+  /** Optional video URL (Sanity-hosted MP4 etc). */
+  videoUrl?: string
+  /** Optional poster for the video. */
+  poster?: SanityImage
 }
 
 interface Props {
   items: GalleryItem[]
+  /**
+   * +1 drifts items right-to-left (default). -1 drifts left-to-right. Wheel and
+   * drag interact in screen space — they always move with the user's finger /
+   * scroll direction regardless of which way the row is auto-drifting.
+   */
+  direction?: 1 | -1
 }
 
 // ──────────────────────────────────────────────────────────────────────────────
@@ -46,13 +60,10 @@ const WARP_SMOOTHING = 0.2
 const WARP_CLAMP = 1.5
 
 /**
- * Ported from t11.com's WebGL gallery. Their shader path is
- *   sign(d * 12) * pow(|d * 12|, 2.2) * 0.5
- * where `d` is smoothed per-frame world-unit displacement. We rescale the
- * input so pixel-space delta produces an equivalent ramp: at idle drift
- * (≈0.5 px/frame) warp stays near zero; at active drag (≈30+ px/frame) it
- * saturates to the clamp. The pow gives the punchy non-linear ramp — small
- * deltas stay calm, hard flicks immediately read.
+ * Ported from t11.com's WebGL gallery shader path:
+ *   sign(d × 12) × pow(|d × 12|, 2.2) × 0.5
+ * where `d` is smoothed per-frame world-unit displacement. Rescaled so our
+ * pixel-space delta produces an equivalent ramp.
  */
 const DELTA_TO_WARP_SCALE = 0.6
 
@@ -62,25 +73,18 @@ const STRETCH_X = 0.18
 const SQUASH_Y = 0.12
 
 /**
- * Auto-drifting infinite horizontal gallery with a velocity-driven bulge/pinch
- * effect ported from t11.com's WebGL implementation.
+ * Auto-drifting infinite horizontal gallery with t11-style velocity warp.
  *
- * - **Drift**: every frame the track advances at BASE_VELOCITY plus a decaying
- *   boost. Wheel events bump the boost; drag scrubs `pos` directly.
- * - **Loop**: items are rendered twice; `pos` wraps modulo the width of one
- *   set (measured at runtime via `offsetLeft`, not `scrollWidth/2`, so the
- *   gap utility is accounted for exactly).
- * - **Warp**: each tile reads `--warp-x` / `--warp-y` from the track via CSS
- *   custom-property inheritance and applies a scale transform. The warp value
- *   is the smoothed, non-linearly ramped per-frame displacement — the same
- *   maths t11 uses for `uWarpIntensity`, applied as CSS instead of GLSL since
- *   our tiles are solid colours (no per-vertex texture displacement to worry
- *   about).
- *
- * Respects `prefers-reduced-motion`: skips the GSAP ticker, the Observer, and
- * the warp entirely. Items render as a static horizontally-scrollable row.
+ * The motion model keeps `pos` monotonically advancing (modulo the loop
+ * period) and applies the row's drift direction only at render time via
+ * `x = -pos * direction`. That way:
+ *   - The two rows can drift in opposite directions just by passing `1` vs
+ *     `-1` — no internal branching on direction.
+ *   - Drag is always in screen-space (drag right → items follow right).
+ *   - Wheel "forward" always advances along the row's drift direction.
+ *   - Warp magnitude is identical between rows at the same |velocity|.
  */
-export function InfiniteGallery({items}: Props) {
+export function InfiniteGallery({items, direction = 1}: Props) {
   const trackRef = useRef<HTMLUListElement>(null)
   const containerRef = useRef<HTMLDivElement>(null)
   const reduce = useReducedMotion()
@@ -91,10 +95,9 @@ export function InfiniteGallery({items}: Props) {
     const container = containerRef.current
     if (!track || !container) return
 
-    // The loop period = distance from first item of set A to first item of
-    // set B (which is `items.length` indices later in DOM order). Reading
-    // offsetLeft is robust across responsive sizes and the gap utility — we
-    // don't have to redo the W + N*gap math by hand.
+    // Loop period = distance from first item of set A to first item of set B
+    // (which is `items.length` indices later in DOM order). Reading offsetLeft
+    // is robust across responsive sizes + gap utility — no W + N*gap math.
     let stripWidth = 0
     const measure = () => {
       const tiles = track.querySelectorAll<HTMLElement>(':scope > li')
@@ -118,11 +121,9 @@ export function InfiniteGallery({items}: Props) {
       if (stripWidth > 0) {
         pos = ((pos % stripWidth) + stripWidth) % stripWidth
       }
-      gsap.set(track, {x: -pos})
+      // Direction flips the rendered translation, leaving pos always-forward.
+      gsap.set(track, {x: -pos * direction})
 
-      // Per-frame displacement, wrap-aware. When `pos` jumps from near
-      // stripWidth back to ~0 the raw diff is huge in the wrong direction;
-      // unwrap by adding/subtracting the period.
       let dp = pos - prevPos
       if (stripWidth > 0) {
         if (dp > stripWidth / 2) dp -= stripWidth
@@ -149,24 +150,24 @@ export function InfiniteGallery({items}: Props) {
       target: container,
       type: 'wheel,touch,pointer',
       wheelSpeed: 1,
-      // Don't preventDefault — the page should still scroll past the gallery
-      // to reach the footer. Wheel both nudges and page-scrolls; the boost is
-      // small enough that the dual behaviour reads as a hint, not a hijack.
       preventDefault: false,
       onWheel(self) {
         const dy = Math.max(
           -WHEEL_DELTA_CAP,
           Math.min(WHEEL_DELTA_CAP, self.deltaY),
         )
+        // No direction multiplier: pos always advances forward; the render
+        // mapping handles the visual direction.
         boost += dy * WHEEL_DELTA_SCALE
       },
       onDrag(self) {
-        // Drag right → reveal items further back (pos decreases).
-        pos -= self.deltaX
+        // Drag is screen-space: dragging right pulls items right regardless
+        // of the row's drift direction. d(pos) = -d(physicalX) / direction.
+        pos -= self.deltaX * direction
       },
       onDragEnd(self) {
-        // Flick: carry release velocity into the decaying boost.
-        boost -= self.velocityX * 0.35
+        // Flick momentum, also screen-space. Same direction sign as drag.
+        boost -= self.velocityX * 0.35 * direction
       },
     })
 
@@ -175,10 +176,8 @@ export function InfiniteGallery({items}: Props) {
       ro.disconnect()
       observer.kill()
     }
-  }, [reduce, items.length])
+  }, [reduce, items.length, direction])
 
-  // Duplicate items so the loop wraps invisibly. Aria-hidden on the duplicates
-  // so screen readers don't double-announce.
   const doubled = [...items, ...items]
 
   return (
@@ -216,12 +215,12 @@ function GalleryFigure({
     <li className="shrink-0" aria-hidden={ariaHidden || undefined}>
       <figure className="flex flex-col gap-3">
         {/*
-         * The tile element reads --warp-x / --warp-y from the track via CSS
-         * inheritance. Defaults of 1/1 keep it identity until the ticker
-         * starts writing. Caption stays unwarped so text remains legible.
+         * Tile reads --warp-x / --warp-y from the track via CSS inheritance
+         * and applies the scale transform. Defaults of 1/1 keep it identity
+         * until the ticker starts writing. Caption stays unwarped.
          */}
         <div
-          className="h-[220px] rounded-[4px] md:h-[420px] md:rounded-[16px]"
+          className="relative h-[220px] overflow-hidden rounded-[4px] md:h-[420px] md:rounded-[16px]"
           style={{
             backgroundColor: item.color,
             aspectRatio: item.ratio,
@@ -229,11 +228,52 @@ function GalleryFigure({
             transformOrigin: 'center center',
             willChange: 'transform',
           }}
-        />
+        >
+          <TileMedia item={item} />
+        </div>
         <figcaption className="text-xs leading-4 tracking-[-0.084px] text-text-secondary md:text-sm md:leading-[22px]">
           {item.caption}
         </figcaption>
       </figure>
     </li>
   )
+}
+
+/**
+ * Render the editor-provided media — image wins over video if both are set.
+ * Falls back to nothing (the tile's solid `color` background shows through),
+ * so empty Sanity entries still leave the row visually intact.
+ */
+function TileMedia({item}: {item: GalleryItem}) {
+  if (item.image) {
+    const src = urlForImage(item.image).width(1200).auto('format').url()
+    return (
+      <Image
+        src={src}
+        alt={item.image.alt ?? item.caption}
+        fill
+        sizes="(min-width: 768px) 50vw, 80vw"
+        className="object-cover"
+      />
+    )
+  }
+  if (item.videoUrl) {
+    const posterSrc = item.poster
+      ? urlForImage(item.poster).width(1200).auto('format').url()
+      : undefined
+    return (
+      <video
+        src={item.videoUrl}
+        poster={posterSrc}
+        autoPlay
+        muted
+        loop
+        playsInline
+        preload="metadata"
+        aria-label={item.caption}
+        className="absolute inset-0 h-full w-full object-cover"
+      />
+    )
+  }
+  return null
 }

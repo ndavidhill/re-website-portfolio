@@ -315,6 +315,22 @@ export interface ArticleCard {
   tags?: string[]
 }
 
+/**
+ * A single tile in the /play infinite gallery. Either `image` or `videoFile`
+ * is set (image wins if both are present). `row` (1 or 2) picks which of the
+ * two opposite-drift rows it appears in.
+ */
+export interface PlayItem {
+  _id: string
+  title: string
+  row: 1 | 2
+  order?: number
+  aspectRatio: '4/5' | '1/1' | '16/9'
+  image?: SanityImage
+  videoFile?: {asset?: {url?: string; mimeType?: string}}
+  poster?: SanityImage
+}
+
 // ---------------------------------------------------------------------------
 // Queries
 // ---------------------------------------------------------------------------
@@ -476,6 +492,19 @@ export const recentArticlesQuery = groq`
   }
 `
 
+export const playItemsQuery = groq`
+  *[_type == "playItem"] | order(row asc, coalesce(order, 9999) asc, _createdAt desc){
+    _id,
+    title,
+    row,
+    order,
+    aspectRatio,
+    image{..., asset->},
+    videoFile{asset->{url, mimeType}},
+    poster{..., asset->}
+  }
+`
+
 // ---------------------------------------------------------------------------
 // Convenience fetchers
 // ---------------------------------------------------------------------------
@@ -576,6 +605,11 @@ export async function getRecentArticles(): Promise<ArticleCard[]> {
   const result = await sanityFetch<ArticleCard[]>(recentArticlesQuery, {}, [
     'article',
   ])
+  return result ?? []
+}
+
+export async function getPlayItems(): Promise<PlayItem[]> {
+  const result = await sanityFetch<PlayItem[]>(playItemsQuery, {}, ['playItem'])
   return result ?? []
 }
 

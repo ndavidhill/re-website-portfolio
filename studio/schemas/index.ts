@@ -3,6 +3,7 @@ import article from './article'
 import caseStudy from './caseStudy'
 import client from './client'
 import homePage from './homePage'
+import playItem from './playItem'
 import {portableText} from './blocks/portableText'
 import {
   mediaBlock,
@@ -20,6 +21,7 @@ export const schemaTypes = [
   article,
   caseStudy,
   client,
+  playItem,
   // Shared
   portableText,
   // Case study blocks

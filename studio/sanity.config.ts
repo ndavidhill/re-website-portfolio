@@ -26,6 +26,7 @@ const structure = (S: StructureBuilder) =>
       S.divider(),
       S.documentTypeListItem('caseStudy').title('Case studies'),
       S.documentTypeListItem('article').title('Articles'),
+      S.documentTypeListItem('playItem').title('Play items'),
       S.documentTypeListItem('author').title('Authors'),
       S.documentTypeListItem('client').title('Clients'),
     ])
