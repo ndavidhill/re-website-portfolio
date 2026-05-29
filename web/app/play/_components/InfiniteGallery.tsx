@@ -121,8 +121,25 @@ export function InfiniteGallery({items, direction = 1}: Props) {
       if (stripWidth > 0) {
         pos = ((pos % stripWidth) + stripWidth) % stripWidth
       }
-      // Direction flips the rendered translation, leaving pos always-forward.
-      gsap.set(track, {x: -pos * direction})
+      // Render mapping. Items sit at DOM offsets [0, 2 * stripWidth] (originals
+      // then duplicates). We want translateX to live in the range
+      // [-stripWidth, 0] for both directions so the duplicates can always fill
+      // whichever side the originals are vacating:
+      //   - direction +1 (drift left):  pos 0 → stripWidth, tx 0 → -stripWidth.
+      //     Originals leave right-to-left; duplicates slide in from the right.
+      //   - direction -1 (drift right): pos 0 → stripWidth, tx -stripWidth → 0.
+      //     Duplicates start in the viewport (translated left by stripWidth)
+      //     and slide right; originals follow them in from the left.
+      // The wrap at pos→stripWidth snaps tx to the other end of the range —
+      // visually a no-op because the items at the new tx are duplicates of the
+      // ones that were just there.
+      const tx =
+        stripWidth === 0
+          ? 0
+          : direction === 1
+          ? -pos
+          : pos - stripWidth
+      gsap.set(track, {x: tx})
 
       let dp = pos - prevPos
       if (stripWidth > 0) {
