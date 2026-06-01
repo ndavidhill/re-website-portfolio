@@ -16,6 +16,13 @@ import {StickyHomeVideo} from './_components/StickyHomeVideo'
 import {WorkCard} from './_components/WorkCard'
 import {HomeNewsroomCarousel} from './_components/HomeNewsroomCarousel'
 
+/**
+ * Newsroom kill switch. The section, its carousel, the GROQ fetch and the
+ * `newsroomIntro` field on the home page document are all left in place — flip
+ * this to `true` to bring the section back in a single line.
+ */
+const SHOW_NEWSROOM = false
+
 export async function generateMetadata(): Promise<Metadata> {
   const home = await getHomePage()
   if (!home) return {}
@@ -71,7 +78,9 @@ export default async function HomePage() {
 
         <TldrSection home={home} />
         <WorkSection home={home} featured={featured} />
-        <NewsroomSection home={home} articles={articles} />
+        {SHOW_NEWSROOM && (
+          <NewsroomSection home={home} articles={articles} />
+        )}
         <AwardsSection home={home} />
 
         <ContactAndFooter />
