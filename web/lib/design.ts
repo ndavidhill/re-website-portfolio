@@ -8,9 +8,16 @@
  *                 Used by AnimatedHeading callsites and headings across the
  *                 case study + homepage. Colour is composed at the use site
  *                 (e.g. `text-text-primary`), so these strings stay reusable.
+ *                 Note: h3 / h4 / bodySmall / caption are defined but not yet
+ *                 adopted by their target surfaces — those still inline the
+ *                 equivalent classes. Refactor when convenient.
  *
- * • `animation` → JS values consumed by framer-motion via Reveal,
- *                 AnimatedHeading, and StickyHomeVideo.
+ * • `animation` → JS values consumed by framer-motion. The ease curve is also
+ *                 the source of truth for the matching inline cubic-bezier
+ *                 transitions in Tailwind classes (WorkCard, WorkIndexMediaCard,
+ *                 the theme-toggle CSS in globals.css). Direct consumers:
+ *                 Reveal, AnimatedHeading, StickyHomeVideo, Accordion,
+ *                 FlipOnResize.
  *
  * • `scroll`    → Scroll-position thresholds. Currently drives the homepage
  *                 hero video docking.
@@ -31,7 +38,8 @@ export const type = {
   display:
     'text-[36px] font-normal leading-[34px] tracking-[-1.2px] md:text-[60.5px] md:leading-[52.7px] md:tracking-[-2.17px]',
 
-  /** 56px section heading — TLDR / Our Work / Newsroom / Awards / case study title (36px on mobile) */
+  /** 56px section heading — TLDR / Our Work / Awards on the homepage, Work
+   *  index header, case study title (36px on mobile). */
   h1: 'text-[36px] font-medium leading-[34px] tracking-[-1.5px] md:text-[56px] md:leading-[52px] md:tracking-[-2.56px]',
 
   /** 48px secondary heading — homepage intro paragraph (30px on mobile) */
@@ -71,9 +79,9 @@ export const animation = {
   /** Default easing — ease-out-expo. Snappy start, smooth settle. */
   ease: [0.16, 1, 0.3, 1] as const,
 
-  /** Seconds. Use `snappy` for icon swaps, `long` for reveal motion. */
+  /** Seconds. `short` for compact UI motion (Accordion), `medium` for Reveal
+   *  defaults, `long` for hero-scale word-by-word entrances. */
   duration: {
-    snappy: 0.2,
     short: 0.4,
     medium: 0.6,
     long: 0.95,
@@ -83,7 +91,6 @@ export const animation = {
   stagger: {
     tight: 0.05,
     normal: 0.08,
-    loose: 0.12,
   },
 
   /** Defaults for the on-scroll `Reveal` wrapper. */
@@ -118,7 +125,6 @@ export const scroll = {
 export const colors = {
   canvas: '#000000',
   surface: '#1d1d1d',
-  surfaceDeep: '#1d1d1d',
   textPrimary: '#eeeeee',
   textSecondary: '#9f9f9f',
   textMuted: '#b3b3b3',
@@ -129,14 +135,13 @@ export const colors = {
 /**
  * Light palette — mapped from the Figma "Foundations" token doc:
  * UI/canvas #ffffff, UI/surface #f6f6f6, UI/border #b4b4b4,
- * Content/primary #1d1d1d, Content/secondary #525252. surfaceDeep, textMuted
- * and textFaint have no 1:1 Figma token for our names, so they're derived to
- * keep the same visual relationships on a light ground.
+ * Content/primary #1d1d1d, Content/secondary #525252. textMuted and textFaint
+ * have no 1:1 Figma token for our names, so they're derived to keep the same
+ * visual relationships on a light ground.
  */
 export const lightColors: Record<keyof typeof colors, string> = {
   canvas: '#ffffff',
   surface: '#f6f6f6',
-  surfaceDeep: '#e4e4e4',
   textPrimary: '#1d1d1d',
   textSecondary: '#525252',
   textMuted: '#767676',
@@ -147,7 +152,6 @@ export const lightColors: Record<keyof typeof colors, string> = {
 function varBlock(palette: Record<keyof typeof colors, string>): string {
   return `  --color-canvas: ${palette.canvas};
   --color-surface: ${palette.surface};
-  --color-surface-deep: ${palette.surfaceDeep};
   --color-text-primary: ${palette.textPrimary};
   --color-text-secondary: ${palette.textSecondary};
   --color-text-muted: ${palette.textMuted};
