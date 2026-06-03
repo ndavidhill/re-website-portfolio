@@ -44,7 +44,7 @@ export default async function CaseStudyPage({
     <article className="relative flex w-full flex-col bg-canvas text-text-primary">
       <SiteHeader activeHref="/work" />
 
-      <div className="flex w-full flex-col gap-16 px-6 pb-5 pt-[88px] md:gap-[115px] md:px-[60px] md:pt-[110px]">
+      <div className="flex w-full flex-col gap-16 px-3 pb-5 pt-[88px] md:gap-[115px] md:px-[30px] md:pt-[110px]">
         {/* Intro — hero on the left. On mobile the accordion stacks below
             the hero. On xl+ the right column is intentionally empty: the
             sticky accordion overlay (rendered below) takes its place so

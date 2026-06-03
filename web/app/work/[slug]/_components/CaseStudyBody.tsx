@@ -80,7 +80,7 @@ function MediaBlockView({
     const ratio = parseRatio(block.aspectRatio) ?? '4 / 5'
     return (
       <figure className="flex w-full flex-col gap-2">
-        <div className="flex w-full items-stretch gap-4">
+        <div className="flex w-full items-stretch gap-2">
           {items.map((item, i) => (
             <div
               key={i}

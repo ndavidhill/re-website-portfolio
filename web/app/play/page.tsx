@@ -87,7 +87,7 @@ export default async function PlayPage() {
         {/* Bottom row drifts the opposite way for visual counterpoint. */}
         <InfiniteGallery items={bottom} direction={-1} />
 
-        <div className="px-6 md:px-[60px]">
+        <div className="px-3 md:px-[30px]">
           <ContactAndFooter />
         </div>
       </div>

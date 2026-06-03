@@ -18,7 +18,7 @@ export default async function WorkIndexPage() {
     <main className="relative w-full bg-canvas text-text-primary">
       <SiteHeader activeHref="/work" />
 
-      <div className="flex w-full flex-col gap-12 px-6 pb-5 pt-[88px] md:gap-[80px] md:px-[60px] md:pt-[110px]">
+      <div className="flex w-full flex-col gap-12 px-3 pb-5 pt-[88px] md:gap-[80px] md:px-[30px] md:pt-[110px]">
         <header className="flex items-start gap-2 border-t border-border pt-5">
           <AnimatedHeading
             text="Our Work"

@@ -81,7 +81,7 @@ export function HomeNewsroomCarousel({articles}: Props) {
 
       <div
         ref={trackRef}
-        className="-mx-6 flex snap-x snap-mandatory gap-6 overflow-x-auto scroll-smooth px-6 pb-2 md:-mx-[60px] md:px-[60px] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+        className="-mx-3 flex snap-x snap-mandatory gap-6 overflow-x-auto scroll-smooth px-3 pb-2 md:-mx-[30px] md:px-[30px] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
       >
         {articles.map((article) => (
           <NewsCard key={article._id} article={article} />

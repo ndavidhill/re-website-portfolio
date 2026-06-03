@@ -68,7 +68,7 @@ export default async function HomePage() {
 
       <StickyHomeVideo src={home.heroVideoUrl} poster={posterUrl} />
 
-      <div className="flex flex-col gap-24 px-6 pb-5 md:gap-60 md:px-[60px]">
+      <div className="flex flex-col gap-24 px-3 pb-5 md:gap-60 md:px-[30px]">
         {/* Intro paragraph */}
         <Reveal>
           <p className={`mx-auto max-w-[1320px] text-text-primary [text-wrap:balance] ${type.h2Large}`}>
