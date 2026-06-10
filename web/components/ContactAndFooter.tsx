@@ -26,7 +26,11 @@ export function ContactAndFooter({email = 'hello@re.design'}: Props) {
         </Reveal>
       </div>
 
-      <Reveal delay={0.08}>
+      {/* rootMarginPx={0}: the footer is the last element on the page, pinned to
+          the bottom. With the default negative bottom inset it never crosses the
+          trigger line (the page can't scroll past it), so it would stay hidden.
+          Trigger the reveal as soon as it enters the viewport instead. */}
+      <Reveal delay={0.08} rootMarginPx={0}>
         <footer className="mt-12 grid w-full max-w-[2000px] grid-cols-1 gap-8 md:grid-cols-[minmax(0,2fr)_minmax(0,1fr)_minmax(0,1fr)] md:gap-0">
           <div className={`min-w-0 text-text-primary ${type.footer}`}>
             ©2026
