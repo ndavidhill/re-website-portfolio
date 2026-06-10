@@ -63,3 +63,25 @@ html.theme-anim * {
     transition: none !important;
   }
 }
+
+/* Infinite Layers Grid (/play-lab) — caption mask reveal as a tile enters view.
+   The inner span sits below its clip until the tile is .lg-visible. */
+.lg-caption {
+  overflow: hidden;
+}
+.lg-caption .lg-caption-inner {
+  transform: translateY(110%);
+  transition: transform 1.2s cubic-bezier(0.16, 1, 0.3, 1);
+}
+.lg-caption.lg-visible .lg-caption-inner {
+  transform: translateY(0);
+}
+html.grabbing {
+  cursor: grabbing;
+}
+@media (prefers-reduced-motion: reduce) {
+  .lg-caption .lg-caption-inner {
+    transform: none;
+    transition: none;
+  }
+}
