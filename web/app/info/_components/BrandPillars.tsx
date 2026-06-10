@@ -21,9 +21,8 @@ interface Props {
  * absolutely and animated via opacity so the swap stays composited (no layout
  * thrash, GPU-only).
  *
- * Active pillar gets a border + surface background + padding inset; inactive
- * pillars carry the same border-width set to `transparent` so widths don't
- * shift between states.
+ * Active pillar gets a filled surface + padding inset; inactive pillars sit in
+ * subtle surface containers so the hover treatment stays clean.
  */
 export function BrandPillars({heading, intro, defaultImage, pillars}: Props) {
   const [activeIdx, setActiveIdx] = useState<number | null>(null)
@@ -48,8 +47,8 @@ export function BrandPillars({heading, intro, defaultImage, pillars}: Props) {
 
       <div className="grid grid-cols-1 gap-10 md:grid-cols-2 md:gap-[60px]">
         {/* Left — image stack */}
-        <Reveal className="md:order-first">
-          <div className="relative aspect-[400/500] w-full overflow-hidden rounded-[4px] bg-surface md:rounded-[8px]">
+        <Reveal className="md:order-first md:self-center">
+          <div className="relative aspect-square w-full overflow-hidden rounded-[4px] bg-surface md:rounded-[8px]">
             {allImages.map(({key, image}) => (
               <div
                 key={key}
@@ -84,11 +83,11 @@ export function BrandPillars({heading, intro, defaultImage, pillars}: Props) {
             </Reveal>
           )}
 
-          <ul className="flex flex-col" role="list">
+          <ul className="flex flex-col gap-4" role="list">
             {pillars.map((p, i) => {
               const active = activeIdx === i
               return (
-                <li key={p._key}>
+                <li key={p._key} className="overflow-hidden rounded-[4px] bg-surface">
                   <button
                     type="button"
                     onMouseEnter={() => setActiveIdx(i)}
@@ -96,21 +95,16 @@ export function BrandPillars({heading, intro, defaultImage, pillars}: Props) {
                     onFocus={() => setActiveIdx(i)}
                     onBlur={() => setActiveIdx(null)}
                     aria-pressed={active}
-                    className={
-                      'flex w-full flex-col gap-3 rounded-[12px] border px-5 py-5 text-left transition-colors ' +
-                      (active
-                        ? 'border-border bg-surface'
-                        : 'border-transparent bg-transparent')
-                    }
+                    className={`group flex w-full flex-col gap-3 rounded-[12px] px-4 py-4 pr-5 text-left transition-[background-color,color,box-shadow,transform] duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] ${
+                      active
+                        ? 'bg-text-primary pl-2 text-canvas shadow-[inset_0_0_0_1px_var(--color-border)]'
+                        : 'bg-transparent hover:bg-text-primary hover:pl-2 hover:text-canvas hover:shadow-[inset_0_0_0_1px_var(--color-border)]'
+                    }`}
                   >
-                    <h3
-                      className={`text-2xl font-medium leading-6 tracking-[-0.4px] text-text-primary`}
-                    >
+                    <h3 className="translate-x-0 text-lg font-medium leading-6 tracking-[-0.4px] text-inherit transition-transform duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] group-hover:translate-x-2 group-focus-visible:translate-x-2">
                       {p.title}
                     </h3>
-                    <p
-                      className={`text-text-secondary ${type.bodyLarge}`}
-                    >
+                    <p className={`${type.bodySmall} translate-x-0 text-inherit opacity-75 transition-transform duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] group-hover:translate-x-2 group-focus-visible:translate-x-2`}>
                       {p.body}
                     </p>
                   </button>

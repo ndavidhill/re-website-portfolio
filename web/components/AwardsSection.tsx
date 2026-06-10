@@ -9,7 +9,7 @@ interface Props {
 }
 
 /**
- * Recognition / awards table — three columns (description, award, year),
+ * Recognition / awards table — four columns (description, client, award, year),
  * rendered as a divided list under an animated heading. Falls silent when the
  * awards array is empty. Lives on both the homepage and the info page; the
  * info page passes in the same data (homePage.awards) so the section reads
@@ -28,21 +28,23 @@ export function AwardsSection({heading, awards}: Props) {
       </div>
 
       <Reveal delay={0.08}>
-        <div className="border-t border-border pt-5">
-          <div className="grid grid-cols-[2fr_2fr_1fr] gap-3 pb-4 text-base font-medium leading-6 tracking-[-0.4px] text-text-secondary md:gap-4 md:text-2xl">
+        <div className="border-p border-border pt-5">
+          <div className="grid grid-cols-[2fr_1.5fr_2fr_0.75fr] gap-3 pb-4 text-base font-medium leading-6 tracking-[-0.4px] text-text-secondary md:gap-4 md:text-md">
             <div>Description</div>
+            <div>Client</div>
             <div>Awards</div>
-            <div>Year</div>
+            <div className="text-right">Year</div>
           </div>
           <ul className="divide-y divide-border">
             {awards.map((a) => (
               <li
                 key={a._key}
-                className="grid grid-cols-[2fr_2fr_1fr] gap-3 py-3 text-sm leading-6 tracking-[-0.27px] text-text-primary md:gap-4 md:text-lg"
+                className="grid grid-cols-[2fr_1.5fr_2fr_0.75fr] gap-3 py-3 text-sm leading-6 tracking-[-0.27px] text-text-primary md:gap-4 md:text-lg"
               >
                 <span>{a.description}</span>
+                <span className="text-text-secondary">{a.client}</span>
                 <span className="text-text-secondary">{a.award}</span>
-                <span className="text-text-faint">{a.year}</span>
+                <span className="justify-self-end text-right text-text-faint">{a.year}</span>
               </li>
             ))}
           </ul>

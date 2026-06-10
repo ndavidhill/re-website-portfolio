@@ -152,14 +152,15 @@ export default defineType({
           type: 'object',
           fields: [
             {name: 'description', type: 'string', title: 'Description'},
+            {name: 'client', type: 'string', title: 'Client'},
             {name: 'award', type: 'string', title: 'Award'},
             {name: 'year', type: 'number', title: 'Year'},
           ],
           preview: {
-            select: {description: 'description', award: 'award', year: 'year'},
-            prepare: ({description, award, year}) => ({
+            select: {description: 'description', client: 'client', award: 'award', year: 'year'},
+            prepare: ({description, client, award, year}) => ({
               title: description,
-              subtitle: [award, year].filter(Boolean).join(' · '),
+              subtitle: [client, award, year].filter(Boolean).join(' · '),
             }),
           },
         },

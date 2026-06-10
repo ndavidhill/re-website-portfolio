@@ -38,6 +38,9 @@ body {
   transform: scale(0);
   transition: transform 0.55s cubic-bezier(0.16, 1, 0.3, 1);
 }
+:is(.theme-toggle:hover, .theme-toggle:focus-visible, .theme-toggle:active) .tt-fill {
+  transform: scale(1);
+}
 :root[data-theme='light'] .tt-fill {
   transform: scale(1);
 }

@@ -27,25 +27,19 @@ export function ContactAndFooter({email = 'hello@re.design'}: Props) {
       </div>
 
       <Reveal delay={0.08}>
-        <footer className="mt-12 flex w-full max-w-[2000px] flex-col gap-8 md:flex-row md:items-start md:gap-0">
-          <div className={`w-full text-text-primary md:w-[660px] ${type.footer}`}>
+        <footer className="mt-12 grid w-full max-w-[2000px] grid-cols-1 gap-8 md:grid-cols-[minmax(0,2fr)_minmax(0,1fr)_minmax(0,1fr)] md:gap-0">
+          <div className={`min-w-0 text-text-primary ${type.footer}`}>
             ©2026
           </div>
-          <div className={`flex w-full flex-col pr-5 text-text-primary md:w-[330px] ${type.footer}`}>
-            <a
-              href="https://mouthwash.studio"
-              target="_blank"
-              rel="noreferrer noopener"
-              className="hover:text-text-secondary"
-            >
-              Mouthwash Research Center
-            </a>
-            <a href="/findings" className="hover:text-text-secondary">
-              Findings
-            </a>
+          <div className={`min-w-0 text-text-primary ${type.footer}`}>
+            <address className="not-italic whitespace-normal">
+              Level 20, 25 Martin Place Sydney, 2000
+            </address>
           </div>
-          <div className={`w-full text-text-primary md:w-[330px] ${type.footer}`}>
-            Level 20, 25 Martin Place Sydney, 2000
+          <div className={`min-w-0 text-text-primary ${type.footer}`}>
+            <address className="not-italic whitespace-normal">
+            Level 6, 459 Church Street, Richmond, VIC 3121
+            </address>
           </div>
         </footer>
       </Reveal>

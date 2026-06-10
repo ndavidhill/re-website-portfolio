@@ -281,7 +281,7 @@ function WorkSection({
           {home.workIntroBlocks?.map((block, i) => (
             <Reveal key={block._key} delay={i * 0.08}>
               <div className="border-t border-border pt-5">
-                <h3 className="text-2xl font-medium leading-6 tracking-[-0.4px] text-text-primary">
+                <h3 className="text-base font-medium leading-6 tracking-[-0.4px] text-text-primary">
                   {block.heading}
                 </h3>
                 <p className={`mt-6 max-w-[550px] text-text-secondary ${type.bodyLarge}`}>

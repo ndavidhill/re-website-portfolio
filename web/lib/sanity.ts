@@ -283,6 +283,7 @@ export interface HomeWorkIntroBlock {
 export interface HomeAward {
   _key: string
   description: string
+  client?: string
   award?: string
   year?: number
 }
@@ -503,7 +504,7 @@ export const homePageQuery = groq`
     workIntroBlocks[]{_key, heading, body, images[]{..., asset->}},
     newsroomIntro,
     awardsHeading,
-    awards[]{_key, description, award, year},
+    awards[]{_key, description, client, award, year},
     seoTitle,
     seoDescription
   }

@@ -3,5 +3,5 @@ export const NAV_ITEMS = [
   {label: 'Work', href: '/work'},
   {label: 'Info', href: '/info'},
   {label: 'Play', href: '/play'},
-  {label: 'Contact', href: '/contact'},
+  {label: '@', href: '/contact'},
 ] as const

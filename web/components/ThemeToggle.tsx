@@ -43,7 +43,7 @@ export function ThemeToggle() {
       onClick={toggle}
       aria-label={theme === 'dark' ? 'Switch to light mode' : 'Switch to dark mode'}
       aria-pressed={theme === 'light'}
-      className={`${ui.button.iconSm} text-text-primary hover:bg-surface focus-visible:bg-surface`}
+      className={`${ui.button.iconSm} theme-toggle text-text-primary`}
     >
       <svg
         viewBox="0 0 18 18"

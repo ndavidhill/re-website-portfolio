@@ -44,7 +44,7 @@
 export const type = {
   /** 60.5px Helvetica-style display — "Get in touch" CTA (36px on mobile) */
   display:
-    'text-[36px] font-normal leading-[34px] tracking-[-1.2px] md:text-[60.5px] md:leading-[52.7px] md:tracking-[-2.17px]',
+    'text-[36px] font-medium leading-[34px] tracking-[-1.2px] md:text-[56px] md:leading-[48.7px] md:tracking-[-2.17px]',
 
   /** 56px section heading — TLDR / Our Work / Awards on the homepage, Work
    *  index header, case study title (36px on mobile). */
@@ -146,8 +146,8 @@ export const ui = {
     glassOverlay:
       'pointer-events-none absolute left-1/2 top-1/2 flex max-w-[calc(100%-24px)] ' +
       '-translate-x-1/2 -translate-y-1/2 items-center justify-center ' +
-      'rounded-full bg-white/40 px-4 py-2 backdrop-blur-md ' +
-      'text-[16px] font-medium leading-none tracking-[-0.2px] text-[#333] ' +
+        'rounded-full bg-white/40 px-4 pt-[0.1rem] pb-[0.35rem] backdrop-blur-md ' +
+      'text-[22px] font-medium leading-[1.4] tracking-[-0.2px] text-[#333] ' +
       'group-hover:bg-white/70 group-hover:text-[#0a0a0a]',
   },
 

@@ -71,7 +71,7 @@ export function AnimatedHeading({
               className="inline-block overflow-hidden align-bottom"
               // Match the heading's line-height so the clip mask is the
               // right vertical size for the word's bounding box.
-              style={{lineHeight: 'inherit', paddingBottom: '0.12em'}}
+              style={{lineHeight: 'inherit', paddingBottom: '0.2em'}}
             >
               <motion.span
                 className="inline-block"
