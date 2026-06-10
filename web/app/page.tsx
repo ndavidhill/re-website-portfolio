@@ -69,7 +69,9 @@ export default async function HomePage() {
 
       <StickyHomeVideo src={home.heroVideoUrl} poster={posterUrl} />
 
-      <div className="flex flex-col gap-24 px-3 pb-5 md:gap-60 md:px-[30px]">
+      {/* pb clears the docked StickyHomeVideo (fixed bottom-right, ~191px tall +
+          24px margin) so the footer/addresses aren't hidden beneath it. */}
+      <div className="flex flex-col gap-24 px-3 pb-[240px] md:gap-60 md:px-[30px]">
         {/* Intro paragraph */}
         <Reveal>
           <p className={`mx-auto max-w-[1320px] text-text-primary [text-wrap:balance] ${type.h2Large}`}>
