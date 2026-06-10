@@ -44,7 +44,7 @@ export function WorkCard({card, showBadge = false, label}: Props) {
 
       {showBadge && (
         <span
-          className="absolute left-6 top-6 inline-flex h-[30px] items-center rounded-[7.5px] bg-[#1fc16b] px-[15px] text-[22.5px] font-medium leading-[30px] text-white"
+          className="absolute left-3 top-3 inline-flex items-center justify-center rounded-[4px] bg-[#1fc16b] px-2 py-1 text-[10px] font-medium uppercase leading-none tracking-[0.4px] text-white md:left-4 md:top-4"
           aria-label="New project"
         >
           NEW
