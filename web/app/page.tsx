@@ -15,6 +15,7 @@ import {type} from '@/lib/design'
 import {StickyHomeVideo} from './_components/StickyHomeVideo'
 import {WorkCard} from './_components/WorkCard'
 import {HomeNewsroomCarousel} from './_components/HomeNewsroomCarousel'
+import {AwardsSection} from '@/components/AwardsSection'
 
 /**
  * Newsroom kill switch. The section, its carousel, the GROQ fetch and the
@@ -81,7 +82,7 @@ export default async function HomePage() {
         {SHOW_NEWSROOM && (
           <NewsroomSection home={home} articles={articles} />
         )}
-        <AwardsSection home={home} />
+        <AwardsSection heading={home.awardsHeading} awards={home.awards} />
 
         <ContactAndFooter />
       </div>
@@ -359,39 +360,4 @@ function NewsroomSection({
   )
 }
 
-function AwardsSection({home}: {home: Home}) {
-  if (!home.awards || home.awards.length === 0) return null
-  return (
-    <section className="flex flex-col gap-12">
-      <div className="border-t border-border pt-5">
-        <AnimatedHeading
-          text={home.awardsHeading ?? '14 years of global recognition.'}
-          as="h2"
-          className={`max-w-[700px] text-text-primary ${type.h1}`}
-        />
-      </div>
-
-      <Reveal delay={0.08}>
-        <div className="border-t border-border pt-5">
-          <div className="grid grid-cols-[2fr_2fr_1fr] gap-3 pb-4 text-base font-medium leading-6 tracking-[-0.4px] text-text-secondary md:gap-4 md:text-2xl">
-            <div>Description</div>
-            <div>Awards</div>
-            <div>Year</div>
-          </div>
-          <ul className="divide-y divide-border">
-            {home.awards.map((a) => (
-              <li
-                key={a._key}
-                className="grid grid-cols-[2fr_2fr_1fr] gap-3 py-3 text-sm leading-6 tracking-[-0.27px] text-text-primary md:gap-4 md:text-lg"
-              >
-                <span>{a.description}</span>
-                <span className="text-text-secondary">{a.award}</span>
-                <span className="text-text-faint">{a.year}</span>
-              </li>
-            ))}
-          </ul>
-        </div>
-      </Reveal>
-    </section>
-  )
-}
+// AwardsSection moved to components/AwardsSection.tsx for reuse on /info.

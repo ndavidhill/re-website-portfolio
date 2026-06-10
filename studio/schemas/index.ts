@@ -3,6 +3,7 @@ import article from './article'
 import caseStudy from './caseStudy'
 import client from './client'
 import homePage from './homePage'
+import infoPage from './infoPage'
 import playItem from './playItem'
 import {portableText} from './blocks/portableText'
 import {
@@ -16,6 +17,7 @@ import {
 export const schemaTypes = [
   // Singletons
   homePage,
+  infoPage,
   // Documents
   author,
   article,

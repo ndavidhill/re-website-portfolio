@@ -315,6 +315,35 @@ export interface ArticleCard {
   tags?: string[]
 }
 
+export interface BrandPillar {
+  _key: string
+  title: string
+  body: string
+  image: SanityImage
+}
+
+/**
+ * Singleton backing the /info page. Pillars drive the interactive list on
+ * the right; their `image` swaps into the left column on hover. Hero videos
+ * are theme-aware (dark default, optional light variant).
+ */
+export interface InfoPage {
+  _id: string
+  heroVideoDark?: {asset?: {url?: string; mimeType?: string}}
+  heroVideoLight?: {asset?: {url?: string; mimeType?: string}}
+  heroVideoPoster?: SanityImage
+  leadHeading: string
+  pillarsIntro?: string
+  pillarsDefaultImage?: SanityImage
+  pillars: BrandPillar[]
+  collectiveHeading?: string
+  collectiveSubheading?: string
+  collectiveIntro?: string
+  team?: SanityImage[]
+  seoTitle?: string
+  seoDescription?: string
+}
+
 /**
  * A single tile in the /play infinite gallery. Either `image` or `videoFile`
  * is set (image wins if both are present). `row` (1 or 2) picks which of the
@@ -492,6 +521,25 @@ export const recentArticlesQuery = groq`
   }
 `
 
+export const infoPageQuery = groq`
+  *[_type == "infoPage"][0]{
+    _id,
+    heroVideoDark{asset->{url, mimeType}},
+    heroVideoLight{asset->{url, mimeType}},
+    heroVideoPoster{..., asset->},
+    leadHeading,
+    pillarsIntro,
+    pillarsDefaultImage{..., asset->},
+    pillars[]{_key, title, body, image{..., asset->}},
+    collectiveHeading,
+    collectiveSubheading,
+    collectiveIntro,
+    team[]{..., asset->},
+    seoTitle,
+    seoDescription
+  }
+`
+
 export const playItemsQuery = groq`
   *[_type == "playItem"] | order(row asc, coalesce(order, 9999) asc, _createdAt desc){
     _id,
@@ -635,6 +683,11 @@ export async function getRecentArticles(): Promise<ArticleCard[]> {
 export async function getPlayItems(): Promise<PlayItem[]> {
   const result = await sanityFetch<PlayItem[]>(playItemsQuery, {}, ['playItem'])
   return result ?? []
+}
+
+export async function getInfoPage(): Promise<InfoPage | null> {
+  const result = await sanityFetch<InfoPage>(infoPageQuery, {}, ['infoPage'])
+  return result ?? null
 }
 
 // Discipline label lookup — mirrors the `list` config in caseStudy.ts so

@@ -10,7 +10,7 @@ import {schemaTypes} from './schemas'
 const projectId = process.env.SANITY_STUDIO_PROJECT_ID || 'ju4przbj'
 const dataset = process.env.SANITY_STUDIO_DATASET || 'production'
 
-const SINGLETONS = ['homePage'] as const
+const SINGLETONS = ['homePage', 'infoPage'] as const
 type Singleton = (typeof SINGLETONS)[number]
 const isSingleton = (t: string | undefined): t is Singleton =>
   !!t && (SINGLETONS as readonly string[]).includes(t)
@@ -23,6 +23,10 @@ const structure = (S: StructureBuilder) =>
         .title('Home page')
         .id('homePage')
         .child(S.document().schemaType('homePage').documentId('homePage')),
+      S.listItem()
+        .title('Info page')
+        .id('infoPage')
+        .child(S.document().schemaType('infoPage').documentId('infoPage')),
       S.divider(),
       S.documentTypeListItem('caseStudy').title('Case studies'),
       S.documentTypeListItem('article').title('Articles'),
