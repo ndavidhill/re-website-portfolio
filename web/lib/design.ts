@@ -155,7 +155,7 @@ export const ui = {
     /** Green NEW indicator. Caller positions it (e.g. absolute top-left). */
     new:
       'inline-flex items-center justify-center rounded-[4px] bg-[#1fc16b] ' +
-      'px-2 py-1 text-[14px] font-medium uppercase leading-none ' +
+      'px-2 pt-0.5 pb-1 text-[14px] font-medium uppercase leading-none ' +
       'tracking-[0.4px] text-white',
   },
 

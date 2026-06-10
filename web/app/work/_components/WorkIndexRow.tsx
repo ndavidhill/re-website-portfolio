@@ -34,10 +34,10 @@ export function WorkIndexRow({card}: Props) {
   return (
     <Reveal>
       <article className="flex flex-col gap-6">
-        <header className="flex flex-wrap items-baseline gap-x-3 pr-[15px]">
-          <span className={`${type.h2} text-text-muted`}>{card.client}</span>
+        <header className="flex flex-wrap items-baseline gap-x-2 pr-[15px]">
+          <span className={`${type.h3} text-text`}>{card.client}</span>
           {card.tagline && (
-            <span className={`${type.h2} text-text-secondary`}>{card.tagline}</span>
+            <span className={`${type.h3} text-text-muted`}>{card.tagline}</span>
           )}
         </header>
 
