@@ -1,12 +1,17 @@
 import {notFound} from 'next/navigation'
 import type {Metadata} from 'next'
-import {getAllCaseStudySlugs, getCaseStudyBySlug} from '@/lib/sanity'
+import {
+  getAllCaseStudySlugs,
+  getCaseStudyBySlug,
+  getNextCaseStudies,
+} from '@/lib/sanity'
 import {SiteHeader} from '@/components/SiteHeader'
 import {ContactAndFooter} from '@/components/ContactAndFooter'
 import {CaseStudyHero} from './_components/CaseStudyHero'
 import {CaseStudyBody} from './_components/CaseStudyBody'
 import {CaseStudyDescription} from './_components/CaseStudyDescription'
 import {StickyDescriptionAccordion} from './_components/StickyDescriptionAccordion'
+import {MoreWork} from './_components/MoreWork'
 
 type Params = {slug: string}
 
@@ -35,7 +40,10 @@ export default async function CaseStudyPage({
   params: Promise<Params>
 }) {
   const {slug} = await params
-  const caseStudy = await getCaseStudyBySlug(slug)
+  const [caseStudy, moreCards] = await Promise.all([
+    getCaseStudyBySlug(slug),
+    getNextCaseStudies(slug, 2),
+  ])
   if (!caseStudy) notFound()
 
   const accordionItems = caseStudy.descriptionAccordion ?? []
@@ -76,6 +84,8 @@ export default async function CaseStudyPage({
         {caseStudy.body && caseStudy.body.length > 0 && (
           <CaseStudyBody blocks={caseStudy.body} />
         )}
+
+        <MoreWork cards={moreCards} />
 
         <ContactAndFooter />
       </div>

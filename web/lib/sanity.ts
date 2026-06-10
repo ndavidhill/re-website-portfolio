@@ -596,6 +596,30 @@ export async function getWorkIndexCaseStudies(): Promise<CaseStudyCard[]> {
   return result ?? []
 }
 
+/**
+ * The next `limit` case studies after `excludeSlug` in the work-index ordering,
+ * wrapping back to the start if needed. Used by the "More work" section at the
+ * end of each case study page. Reuses `getWorkIndexCaseStudies()` so the call
+ * dedupes with the index page's fetch.
+ */
+export async function getNextCaseStudies(
+  excludeSlug: string,
+  limit = 2,
+): Promise<CaseStudyCard[]> {
+  const all = await getWorkIndexCaseStudies()
+  if (all.length === 0) return []
+  const idx = all.findIndex((c) => c.slug === excludeSlug)
+  // Slug not in the index (drafts, unpublished — shouldn't normally happen for
+  // a server-rendered case study page, but stay defensive): fall back to head.
+  if (idx === -1) return all.slice(0, limit)
+  const out: CaseStudyCard[] = []
+  for (let step = 1; step <= all.length && out.length < limit; step++) {
+    const candidate = all[(idx + step) % all.length]
+    if (candidate.slug !== excludeSlug) out.push(candidate)
+  }
+  return out
+}
+
 export async function getHomePage(): Promise<HomePage | null> {
   const result = await sanityFetch<HomePage>(homePageQuery, {}, ['homePage'])
   return result ?? null
