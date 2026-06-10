@@ -64,7 +64,7 @@ html.theme-anim * {
   }
 }
 
-/* Infinite Layers Grid (/play-lab) — caption mask reveal as a tile enters view.
+/* Infinite Layers Grid (/play) — caption mask reveal as a tile enters view.
    The inner span sits below its clip until the tile is .lg-visible. */
 .lg-caption {
   overflow: hidden;

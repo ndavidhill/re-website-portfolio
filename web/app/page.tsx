@@ -3,8 +3,10 @@ import Image from 'next/image'
 import {
   getFeaturedCaseStudies,
   getHomePage,
+  getPlayItems,
   getRecentArticles,
   urlForImage,
+  type PlayItem,
 } from '@/lib/sanity'
 import {SiteHeader} from '@/components/SiteHeader'
 import {ContactAndFooter} from '@/components/ContactAndFooter'
@@ -15,6 +17,7 @@ import {type} from '@/lib/design'
 import {StickyHomeVideo} from './_components/StickyHomeVideo'
 import {WorkCard} from './_components/WorkCard'
 import {HomeNewsroomCarousel} from './_components/HomeNewsroomCarousel'
+import {InfiniteGallery, type GalleryItem} from './_components/InfiniteGallery'
 import {AwardsSection} from '@/components/AwardsSection'
 
 /**
@@ -34,10 +37,11 @@ export async function generateMetadata(): Promise<Metadata> {
 }
 
 export default async function HomePage() {
-  const [home, featured, articles] = await Promise.all([
+  const [home, featured, articles, playItems] = await Promise.all([
     getHomePage(),
     getFeaturedCaseStudies(),
     getRecentArticles(),
+    getPlayItems(),
   ])
 
   if (!home) {
@@ -86,6 +90,8 @@ export default async function HomePage() {
         )}
         <AwardsSection heading={home.awardsHeading} awards={home.awards} />
 
+        <LabsSection items={playItems} />
+
         <ContactAndFooter />
       </div>
     </main>
@@ -97,6 +103,77 @@ export default async function HomePage() {
 // ---------------------------------------------------------------------------
 
 type Home = NonNullable<Awaited<ReturnType<typeof getHomePage>>>
+
+// Muted palette for play tiles with no media (cycled per item).
+const LABS_PALETTE = [
+  '#D6CFC1',
+  '#7B8B7E',
+  '#5C6F7E',
+  '#A0A8A0',
+  '#8B5C5C',
+  '#736857',
+  '#C9A671',
+  '#5E5E68',
+] as const
+
+const LABS_FALLBACK: GalleryItem[] = [
+  {caption: 'Type study — 2026', ratio: '4/5', color: '#D6CFC1'},
+  {caption: 'Colour experiment — 2026', ratio: '1/1', color: '#7B8B7E'},
+  {caption: 'Motion sketch — 2026', ratio: '16/9', color: '#5C6F7E'},
+  {caption: 'Material study — 2025', ratio: '4/5', color: '#A0A8A0'},
+  {caption: 'Pattern system — 2025', ratio: '1/1', color: '#8B5C5C'},
+  {caption: 'Type & space — 2025', ratio: '16/9', color: '#736857'},
+]
+
+/**
+ * Labs — a single drifting row of the /play gallery, teasing the studio's
+ * experiments at the foot of the homepage. Rows in the schema are flattened into
+ * one; the section breaks the page gutter to run full-bleed.
+ */
+function LabsSection({items}: {items: PlayItem[]}) {
+  const row: GalleryItem[] =
+    items.length > 0
+      ? items.map((it, i) => ({
+          caption: it.title,
+          ratio: it.aspectRatio,
+          color: LABS_PALETTE[i % LABS_PALETTE.length],
+          image: it.image,
+          videoUrl: it.videoFile?.asset?.url,
+          poster: it.poster,
+        }))
+      : LABS_FALLBACK
+
+  return (
+    <section className="flex flex-col gap-8 md:gap-12">
+      <div className="border-t border-border pt-5">
+        <div className="grid grid-cols-1 gap-10 md:grid-cols-2 md:gap-[60px]">
+          <AnimatedHeading
+            text="Labs"
+            as="h2"
+            className={`${type.h1} text-text-primary`}
+          />
+          <Reveal>
+            <p className={`max-w-[550px] text-text-secondary ${type.body}`}>
+              Our design practice is built on experimentation.{' '}
+              <a
+                href="/play"
+                className="text-text-primary underline decoration-from-font underline-offset-[3px] transition-colors hover:text-text-secondary"
+              >
+                Discover our latest here
+              </a>
+              .
+            </p>
+          </Reveal>
+        </div>
+      </div>
+
+      {/* Full-bleed: cancel the homepage gutter so the row runs edge to edge. */}
+      <div className="-mx-3 md:-mx-[30px]">
+        <InfiniteGallery items={row} direction={1} />
+      </div>
+    </section>
+  )
+}
 
 function TldrSection({home}: {home: Home}) {
   return (
