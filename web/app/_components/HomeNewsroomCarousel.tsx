@@ -5,6 +5,7 @@ import Link from 'next/link'
 import {motion, useReducedMotion} from 'framer-motion'
 import {useCallback, useEffect, useRef, useState} from 'react'
 import {urlForImage, type ArticleCard} from '@/lib/sanity'
+import {ui} from '@/lib/design'
 
 interface Props {
   articles: ArticleCard[]
@@ -59,7 +60,7 @@ export function HomeNewsroomCarousel({articles}: Props) {
           type="button"
           onClick={() => scrollBy(-(CARD_WIDTH + GAP))}
           aria-label="Previous"
-          className="flex h-9 items-center rounded-lg border border-border bg-canvas px-3 text-sm text-text-secondary transition-colors hover:bg-surface hover:text-text-primary"
+          className={ui.button.secondary}
         >
           ← Prev
         </button>
@@ -67,7 +68,7 @@ export function HomeNewsroomCarousel({articles}: Props) {
           type="button"
           onClick={() => scrollBy(CARD_WIDTH + GAP)}
           aria-label="Next"
-          className="flex h-9 items-center rounded-lg border border-border bg-canvas px-3 text-sm text-text-secondary transition-colors hover:bg-surface hover:text-text-primary"
+          className={ui.button.secondary}
         >
           Next →
         </button>

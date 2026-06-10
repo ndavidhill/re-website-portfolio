@@ -1,7 +1,7 @@
 import {ALL_DISCIPLINES, DISCIPLINE_LABELS, type CaseStudy} from '@/lib/sanity'
 import {Reveal} from '@/components/Reveal'
 import {AnimatedHeading} from '@/components/AnimatedHeading'
-import {type} from '@/lib/design'
+import {type, ui} from '@/lib/design'
 
 interface Props {
   caseStudy: Pick<
@@ -82,12 +82,9 @@ export function CaseStudyHero({caseStudy}: Props) {
                   <li
                     key={discipline}
                     data-active={active}
-                    className={
-                      'flex h-6 items-center rounded-md px-2 text-xs font-medium leading-4 transition-colors ' +
-                      (active
-                        ? 'border border-transparent bg-text-primary/10 text-text-primary'
-                        : 'border border-border text-text-faint')
-                    }
+                    className={`${ui.chip.base} ${
+                      active ? ui.chip.active : ui.chip.inactive
+                    }`}
                   >
                     {DISCIPLINE_LABELS[discipline]}
                   </li>

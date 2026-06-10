@@ -4,6 +4,7 @@ import {useEffect, useState} from 'react'
 import {createPortal} from 'react-dom'
 import Link from 'next/link'
 import {NAV_ITEMS} from './nav-items'
+import {ui} from '@/lib/design'
 
 /**
  * Mobile-only navigation: a hamburger button that opens a full-screen overlay
@@ -44,7 +45,7 @@ export function MobileNav({activeHref}: {activeHref?: string}) {
         aria-expanded={open}
         aria-controls="mobile-menu"
         onClick={() => setOpen(true)}
-        className="flex h-[32px] w-[32px] items-center justify-center rounded-lg bg-text-muted/90 text-canvas backdrop-blur-sm"
+        className={`${ui.button.iconSm} bg-text-muted/90 text-canvas backdrop-blur-sm`}
       >
         <svg
           width="18"
@@ -71,7 +72,7 @@ export function MobileNav({activeHref}: {activeHref?: string}) {
               type="button"
               aria-label="Close menu"
               onClick={() => setOpen(false)}
-              className="flex h-[32px] w-[32px] items-center justify-center rounded-lg bg-text-muted/90 text-canvas"
+              className={`${ui.button.iconSm} bg-text-muted/90 text-canvas`}
             >
               <svg
                 width="18"

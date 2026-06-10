@@ -49,7 +49,7 @@ export function BrandPillars({heading, intro, defaultImage, pillars}: Props) {
       <div className="grid grid-cols-1 gap-10 md:grid-cols-2 md:gap-[60px]">
         {/* Left — image stack */}
         <Reveal className="md:order-first">
-          <div className="relative aspect-[660/781] w-full overflow-hidden rounded-[4px] bg-surface md:rounded-[16px]">
+          <div className="relative aspect-[400/500] w-full overflow-hidden rounded-[4px] bg-surface md:rounded-[8px]">
             {allImages.map(({key, image}) => (
               <div
                 key={key}

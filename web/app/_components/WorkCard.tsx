@@ -1,6 +1,7 @@
 import Image from 'next/image'
 import Link from 'next/link'
 import {urlForImage, type CaseStudyCard} from '@/lib/sanity'
+import {ui} from '@/lib/design'
 
 interface Props {
   card: CaseStudyCard
@@ -26,7 +27,7 @@ export function WorkCard({card, showBadge = false, label}: Props) {
     <Link
       href={`/work/${card.slug}`}
       aria-label={`${card.client} — ${card.title}`}
-      className="group relative block aspect-[678/782] w-full overflow-hidden rounded-[4px] bg-surface md:rounded-[12px]"
+      className="group relative block aspect-[200/250] w-full overflow-hidden rounded-[4px] bg-surface md:rounded-[12px]"
     >
       {src ? (
         <Image
@@ -44,7 +45,7 @@ export function WorkCard({card, showBadge = false, label}: Props) {
 
       {showBadge && (
         <span
-          className="absolute left-3 top-3 inline-flex items-center justify-center rounded-[4px] bg-[#1fc16b] px-2 py-1 text-[10px] font-medium uppercase leading-none tracking-[0.4px] text-white md:left-4 md:top-4"
+          className={`${ui.badge.new} absolute left-3 top-3 md:left-4 md:top-4`}
           aria-label="New project"
         >
           NEW
@@ -53,11 +54,9 @@ export function WorkCard({card, showBadge = false, label}: Props) {
 
       <span
         aria-hidden="true"
-        className="absolute left-1/2 top-1/2 flex max-w-[calc(100%-24px)] -translate-x-1/2 -translate-y-1/2 items-center justify-center rounded-full bg-white/40 px-3 py-1 text-[#333] backdrop-blur-md transition-[background-color,color,transform] duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] group-hover:bg-white/70 group-hover:text-[#0a0a0a]"
+        className={`${ui.pill.glassOverlay} transition-[background-color,color,transform] duration-300 ease-[cubic-bezier(0.16,1,0.3,1)]`}
       >
-        <span className="min-w-0 truncate text-[12px] font-medium leading-none tracking-[-0.2px]">
-          {pillText}
-        </span>
+        <span className="min-w-0 truncate">{pillText}</span>
       </span>
     </Link>
   )

@@ -23,27 +23,22 @@ interface Props {
 export function OneCollective({heading, subheading, intro, team}: Props) {
   return (
     <section className="flex flex-col gap-10 md:gap-[60px]">
+      {/* Header row — one shared border line above; heading on the left,
+          subheading + intro on the right, both top-aligning via the grid.
+          Same pattern the homepage TLDR / Q&A sections use. */}
       <div className="border-t border-border pt-5">
-        <AnimatedHeading
-          text={heading ?? 'One collective'}
-          as="h2"
-          className={`text-text-primary ${type.h1}`}
-        />
-      </div>
+        <div className="grid grid-cols-1 gap-10 md:grid-cols-2 md:gap-[60px]">
+          <AnimatedHeading
+            text={heading ?? 'One collective'}
+            as="h2"
+            className={`text-text-primary ${type.h1}`}
+          />
 
-      <div className="grid grid-cols-1 gap-10 md:grid-cols-2 md:gap-[60px]">
-        {/* Empty left column on md+ — pushes the content to the right column,
-            matching the Figma's negative space. Collapses on mobile. */}
-        <div aria-hidden className="hidden md:block" />
-
-        <div className="flex flex-col gap-10 md:gap-[60px]">
           {(subheading || intro) && (
             <Reveal>
-              <header className="flex flex-col gap-6 border-t border-border pt-5">
+              <div className="flex flex-col gap-6">
                 {subheading && (
-                  <h3
-                    className={`text-text-primary text-base font-medium leading-[18px] tracking-[-0.176px]`}
-                  >
+                  <h3 className="text-base font-medium leading-[18px] tracking-[-0.176px] text-text-primary">
                     {subheading}
                   </h3>
                 )}
@@ -54,35 +49,38 @@ export function OneCollective({heading, subheading, intro, team}: Props) {
                     {intro}
                   </p>
                 )}
-              </header>
-            </Reveal>
-          )}
-
-          {team && team.length > 0 && (
-            <Reveal delay={0.08}>
-              <ul
-                role="list"
-                className="grid grid-cols-3 gap-2 md:gap-3"
-              >
-                {team.map((person, i) => (
-                  <li
-                    key={(person as {_key?: string})._key ?? i}
-                    className="relative aspect-square overflow-hidden rounded-[4px] bg-surface md:rounded-[12px]"
-                  >
-                    <Image
-                      src={urlForImage(person).width(600).auto('format').url()}
-                      alt={person.alt ?? ''}
-                      fill
-                      sizes="(min-width: 768px) 16vw, 33vw"
-                      className="object-cover"
-                    />
-                  </li>
-                ))}
-              </ul>
+              </div>
             </Reveal>
           )}
         </div>
       </div>
+
+      {/* Headshot grid — sits in the right column only (left stays empty on
+          md+ to keep the negative-space rhythm from the Figma). */}
+      {team && team.length > 0 && (
+        <div className="grid grid-cols-1 gap-10 md:grid-cols-2 md:gap-[60px]">
+          <div aria-hidden className="hidden md:block" />
+
+          <Reveal delay={0.08}>
+            <ul role="list" className="grid grid-cols-3 gap-2 md:gap-3">
+              {team.map((person, i) => (
+                <li
+                  key={(person as {_key?: string})._key ?? i}
+                  className="relative aspect-square overflow-hidden rounded-[4px] bg-surface md:rounded-[12px]"
+                >
+                  <Image
+                    src={urlForImage(person).width(600).auto('format').url()}
+                    alt={person.alt ?? ''}
+                    fill
+                    sizes="(min-width: 768px) 16vw, 33vw"
+                    className="object-cover"
+                  />
+                </li>
+              ))}
+            </ul>
+          </Reveal>
+        </div>
+      )}
     </section>
   )
 }

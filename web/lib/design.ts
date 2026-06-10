@@ -1,5 +1,6 @@
 /**
- * Central design tokens — type styles, animations, scroll thresholds, colors.
+ * Central design tokens — type styles, animations, scroll thresholds, colors,
+ * chrome primitives.
  *
  * Tweak values here and they propagate everywhere they're consumed. Each
  * section has a short note on where the values are actually used.
@@ -26,6 +27,13 @@
  *                 properties at runtime via `designVariablesCss()`. Tailwind
  *                 utilities (`bg-canvas`, `text-text-primary`, etc.) resolve
  *                 against those variables via globals.css.
+ *
+ * • `ui`        → Reusable chrome primitives — pill, badge, chip, button
+ *                 shapes. Each is a Tailwind class string consumed via
+ *                 template literals at the call site. Colour-variant pieces
+ *                 (chip.active vs chip.inactive) compose with the base
+ *                 string. New variants live here as soon as a second call
+ *                 site appears.
  */
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -114,6 +122,74 @@ export const scroll = {
   heroVideoTrigger: {
     start: 240,
     end: 900,
+  },
+} as const
+
+// ─────────────────────────────────────────────────────────────────────────────
+// UI — reusable chrome shapes (pills, badges, chips, buttons).
+//
+// Each entry is a Tailwind class string. Compose with theme colours / state
+// at the call site:  className={`${ui.button.iconSm} text-text-primary
+// hover:bg-surface`}.  Add a variant here as soon as a second call site
+// needs the same shape.
+// ─────────────────────────────────────────────────────────────────────────────
+
+export const ui = {
+  pill: {
+    /**
+     * Glassmorphic label pill centred over a media card. Used inside a
+     * `group` parent — the colour bumps on hover come from the group state.
+     * Caller supplies the visibility rule (always-on or
+     * opacity-0/group-hover:opacity-100) and any transition timing.
+     * Used by WorkCard and WorkIndexMediaCard.
+     */
+    glassOverlay:
+      'pointer-events-none absolute left-1/2 top-1/2 flex max-w-[calc(100%-24px)] ' +
+      '-translate-x-1/2 -translate-y-1/2 items-center justify-center ' +
+      'rounded-full bg-white/40 px-4 py-2 backdrop-blur-md ' +
+      'text-[16px] font-medium leading-none tracking-[-0.2px] text-[#333] ' +
+      'group-hover:bg-white/70 group-hover:text-[#0a0a0a]',
+  },
+
+  badge: {
+    /** Green NEW indicator. Caller positions it (e.g. absolute top-left). */
+    new:
+      'inline-flex items-center justify-center rounded-[4px] bg-[#1fc16b] ' +
+      'px-2 py-1 text-[14px] font-medium uppercase leading-none ' +
+      'tracking-[0.4px] text-white',
+  },
+
+  chip: {
+    /**
+     * Base chip shape — h-6, rounded-md, 1px border. Caller picks the
+     * active/inactive variant for colour + bg + border-colour.
+     */
+    base:
+      'flex h-7 items-center rounded-md border px-2 text-xs font-medium ' +
+      'leading-4 transition-colors',
+    /** Highlighted state. */
+    active: 'border-transparent bg-text-primary/10 text-text-primary',
+    /** Muted state. */
+    inactive: 'border-border text-text-faint',
+  },
+
+  button: {
+    /**
+     * Subtle outlined button — carousel arrows etc. Inherits text-secondary,
+     * hovers to surface bg and primary text.
+     */
+    secondary:
+      'flex h-9 items-center rounded-lg border border-border bg-canvas px-3 ' +
+      'text-sm text-text-secondary transition-colors ' +
+      'hover:bg-surface hover:text-text-primary',
+    /**
+     * 32×32 rounded-lg icon-only button — theme toggle, mobile menu open /
+     * close. Variant-agnostic: caller supplies the bg + text colour and any
+     * hover/focus rule for the specific surface it lives on.
+     */
+    iconSm:
+      'flex h-[32px] w-[32px] items-center justify-center rounded-lg ' +
+      'transition-colors',
   },
 } as const
 
