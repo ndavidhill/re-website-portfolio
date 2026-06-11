@@ -28,7 +28,7 @@ export function AwardsSection({heading, awards}: Props) {
       </div>
 
       <Reveal delay={0.08}>
-        <div className="border-p border-border pt-5">
+        <div className="border-t border-border pt-5">
           <div className="grid grid-cols-[2fr_1.5fr_2fr_0.75fr] gap-3 pb-4 text-base font-medium leading-6 tracking-[-0.4px] text-text-secondary md:gap-4 md:text-md">
             <div>Description</div>
             <div>Client</div>
