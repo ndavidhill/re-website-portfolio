@@ -6,6 +6,8 @@ import {
   type PairVideo,
 } from '@/lib/sanity'
 import {Reveal} from '@/components/Reveal'
+import {ProgressiveBlur} from '@/components/ProgressiveBlur'
+import {BlurredCoverVideo} from '@/components/BlurredCoverVideo'
 import {VimeoBlock} from '@/app/_components/VimeoBlock'
 import {LazyCoverVideo} from '@/app/_components/LazyCoverVideo'
 
@@ -39,15 +41,19 @@ function MediaSlot({
   priority?: boolean
 }) {
   if (!isPairVideo(item)) {
+    const src = imgSrc(item, width)
     return (
-      <Image
-        src={imgSrc(item, width)}
-        alt={item.alt ?? ''}
-        fill
-        sizes={sizes}
-        className="object-cover"
-        priority={priority}
-      />
+      <>
+        <Image
+          src={src}
+          alt={item.alt ?? ''}
+          fill
+          sizes={sizes}
+          className="object-cover"
+          priority={priority}
+        />
+        <ProgressiveBlur imageSrc={src} />
+      </>
     )
   }
 
@@ -55,15 +61,15 @@ function MediaSlot({
     ? urlForImage(item.poster).width(1600).url()
     : item.posterUrl
 
-  // Viewport-gated so stacked/paired videos don't all load at once on mobile.
-  return (
-    <LazyCoverVideo
-      url={item.url}
-      fileUrl={item.videoFile?.asset?.url}
-      poster={posterSrc}
-      title={item.alt}
-    />
-  )
+  // Self-hosted MP4s get the WebGL progressive blur (their frames can be
+  // textured); third-party embeds can't be sampled, so they stay sharp.
+  // Both are viewport-gated so stacked/paired clips don't all load at once.
+  const fileUrl = item.videoFile?.asset?.url
+  if (fileUrl) {
+    return <BlurredCoverVideo fileUrl={fileUrl} poster={posterSrc} title={item.alt} />
+  }
+
+  return <LazyCoverVideo url={item.url} poster={posterSrc} title={item.alt} />
 }
 
 function MediaBlockView({
@@ -203,21 +209,25 @@ function GalleryBlockView({
       : 'grid-cols-2 md:grid-cols-3'
   return (
     <div className={`grid w-full gap-4 ${gridCls}`}>
-      {block.images.map((img, i) => (
-        <div
-          key={i}
-          className="relative aspect-square overflow-hidden rounded-[4px] md:rounded-[16px]"
-        >
-          <Image
-            src={imgSrc(img, 900)}
-            alt={img.alt ?? ''}
-            fill
-            sizes="(min-width: 768px) 33vw, 50vw"
-            className="object-cover"
-            priority={priority && i === 0}
-          />
-        </div>
-      ))}
+      {block.images.map((img, i) => {
+        const src = imgSrc(img, 900)
+        return (
+          <div
+            key={i}
+            className="relative aspect-square overflow-hidden rounded-[4px] md:rounded-[16px]"
+          >
+            <Image
+              src={src}
+              alt={img.alt ?? ''}
+              fill
+              sizes="(min-width: 768px) 33vw, 50vw"
+              className="object-cover"
+              priority={priority && i === 0}
+            />
+            <ProgressiveBlur imageSrc={src} />
+          </div>
+        )
+      })}
     </div>
   )
 }
