@@ -2,6 +2,7 @@
 
 import Link from 'next/link'
 import {useState} from 'react'
+import {usePathname} from 'next/navigation'
 import {
   motion,
   useMotionValueEvent,
@@ -11,7 +12,7 @@ import {
 import {ReLogo} from './ReLogo'
 import {MobileNav} from './MobileNav'
 import {ThemeToggle} from './ThemeToggle'
-import {NAV_ITEMS} from './nav-items'
+import {DESKTOP_NAV_ITEMS} from './nav-items'
 
 // Reveal once the user scrolls up; hide once they scroll down past the header.
 const HIDE_AFTER = 120
@@ -24,6 +25,11 @@ export function SiteHeader({activeHref}: {activeHref?: string}) {
   const {scrollY} = useScroll()
   const [hidden, setHidden] = useState(false)
   const [scrolled, setScrolled] = useState(false)
+  // Pages may pass activeHref to pin a section (e.g. case studies → /work);
+  // otherwise the live pathname drives the active pill (so "/" lights up
+  // Re.design without every page threading a prop).
+  const pathname = usePathname()
+  const active = activeHref ?? pathname
 
   useMotionValueEvent(scrollY, 'change', (y) => {
     setScrolled(y > BACKDROP_AFTER)
@@ -62,23 +68,32 @@ export function SiteHeader({activeHref}: {activeHref?: string}) {
           <ReLogo className="h-[30px] w-[50px]" />
         </Link>
 
-        {/* Right cluster — DOM order [pill][toggle][hamburger] gives the right
-            placement in both layouts: desktop shows pill + toggle (toggle right
-            of the nav); mobile shows toggle + hamburger (toggle to its left). */}
-        <div className="flex items-center gap-3">
-          <nav aria-label="Primary" className="hidden md:block">
-            <ul className="flex h-[32px] items-center gap-1.5 rounded-lg bg-text-muted/90 px-1 backdrop-blur-sm">
-              {NAV_ITEMS.map((item) => {
-                const isActive = !!activeHref && activeHref.startsWith(item.href)
+        {/* Right cluster — DOM order [pills][toggle][hamburger] gives the right
+            placement in both layouts: desktop shows pills + toggle (toggle right
+            of the nav); mobile shows toggle + hamburger (toggle to its left).
+            Desktop nav per Figma 406:7297: each item is its own pill (h-25,
+            px-10, r-8, 4px gaps) in a blurred wrapper, moon button outside. */}
+        <div className="flex items-center gap-2 md:gap-3">
+          <nav
+            aria-label="Primary"
+            className="hidden rounded-[8px] px-1 backdrop-blur-[6px] md:block"
+          >
+            <ul className="flex h-[30px] items-center gap-1">
+              {DESKTOP_NAV_ITEMS.map((item) => {
+                const isActive =
+                  item.href === '/'
+                    ? active === '/'
+                    : active.startsWith(item.href)
                 return (
                   <li key={item.href}>
                     <Link
                       href={item.href}
+                      aria-current={isActive ? 'page' : undefined}
                       className={
-                        'flex items-center justify-center rounded-lg px-2.5 py-5px pt-[0.21rem] pb-[0.35rem] text-[14.75px] leading-none tracking-[-0.3px] transition-colors ' +
+                        'flex h-[25px] items-center justify-center rounded-[8px] px-2.5 pb-[2px] text-[14.766px] leading-[18px] tracking-[-0.3px] transition-colors duration-200 ' +
                         (isActive
-                          ? 'bg-text-primary text-canvas'
-                          : 'text-canvas/80 hover:bg-text-primary hover:text-canvas')
+                          ? 'bg-[var(--nav-pill-bg-active)] text-[var(--nav-pill-fg-active)]'
+                          : 'bg-[var(--nav-pill-bg)] text-[var(--nav-pill-fg)] hover:bg-[var(--nav-pill-bg-hover)] focus-visible:bg-[var(--nav-pill-bg-hover)]')
                       }
                     >
                       {item.label}

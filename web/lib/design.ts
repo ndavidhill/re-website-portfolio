@@ -225,6 +225,38 @@ export const lightColors: Record<keyof typeof colors, string> = {
   border: '#b4b4b4',
 }
 
+/**
+ * Desktop nav pill state ramp (Figma 406:7298). Rest matches the Figma
+ * `neutral/light/05` pill exactly in both themes; hover and active step the
+ * emphasis toward maximum contrast against that theme's canvas — lighter on
+ * dark (#d2d2d2 → #e6e6e6 → #ffffff), darker on light (#d2d2d2 → #bfbfbf →
+ * #1d1d1d with light text).
+ */
+const navPill = {
+  dark: {
+    bg: '#d2d2d2',
+    bgHover: '#e6e6e6',
+    bgActive: '#ffffff',
+    fg: '#0a0a0a',
+    fgActive: '#0a0a0a',
+  },
+  light: {
+    bg: '#d2d2d2',
+    bgHover: '#bfbfbf',
+    bgActive: '#1d1d1d',
+    fg: '#0a0a0a',
+    fgActive: '#f5f5f5',
+  },
+} as const
+
+function navPillBlock(p: (typeof navPill)[keyof typeof navPill]): string {
+  return `  --nav-pill-bg: ${p.bg};
+  --nav-pill-bg-hover: ${p.bgHover};
+  --nav-pill-bg-active: ${p.bgActive};
+  --nav-pill-fg: ${p.fg};
+  --nav-pill-fg-active: ${p.fgActive};`
+}
+
 function varBlock(palette: Record<keyof typeof colors, string>): string {
   return `  --color-canvas: ${palette.canvas};
   --color-surface: ${palette.surface};
@@ -245,9 +277,11 @@ export function designVariablesCss(): string {
   return `:root {
   color-scheme: dark;
 ${varBlock(colors)}
+${navPillBlock(navPill.dark)}
 }
 :root[data-theme="light"] {
   color-scheme: light;
 ${varBlock(lightColors)}
+${navPillBlock(navPill.light)}
 }`
 }

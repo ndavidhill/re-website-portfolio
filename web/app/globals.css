@@ -29,20 +29,28 @@ body {
   -moz-osx-font-smoothing: grayscale;
 }
 
-/* Theme toggle: the crescent moon (exact Figma path) is always drawn; switching
-   to light grows a disc from its centre that fills the crescent into a full
-   circle. Both use currentColor, which flips with the theme. */
-.tt-fill {
-  transform-box: fill-box;
-  transform-origin: center;
-  transform: scale(0);
-  transition: transform 0.55s cubic-bezier(0.16, 1, 0.3, 1);
+/* Theme toggle: a moon disc with a masked "shadow" disc carving the crescent.
+   Switching to light slides the shadow off along the diagonal while the whole
+   icon rotates — the crescent waxes to full, and wanes back on return.
+   Hover previews the motion: in dark the shadow creeps away (crescent thins
+   toward full); in light it creeps back (a sliver of shadow bites in). */
+.tt-moon {
+  transition: transform 0.65s cubic-bezier(0.16, 1, 0.3, 1);
 }
-:is(.theme-toggle:hover, .theme-toggle:focus-visible, .theme-toggle:active) .tt-fill {
-  transform: scale(1);
+.tt-shadow {
+  transition: transform 0.65s cubic-bezier(0.16, 1, 0.3, 1);
 }
-:root[data-theme='light'] .tt-fill {
-  transform: scale(1);
+:is(.theme-toggle:hover, .theme-toggle:focus-visible) .tt-shadow {
+  transform: translate(2.5px, -2.5px);
+}
+:root[data-theme='light'] .tt-moon {
+  transform: rotate(50deg);
+}
+:root[data-theme='light'] .tt-shadow {
+  transform: translate(11px, -11px);
+}
+:root[data-theme='light'] :is(.theme-toggle:hover, .theme-toggle:focus-visible) .tt-shadow {
+  transform: translate(5px, -5px);
 }
 
 /* Whole-site cross-fade — only while toggling (class added for ~0.5s), so it
@@ -56,8 +64,16 @@ html.theme-anim * {
     fill 0.45s ease !important;
 }
 
+/* The blanket override above replaces the moon's transform transition during
+   the toggle window — exactly when the crescent↔full morph plays — snapping
+   it. Re-exempt the moon parts (higher specificity wins over the * rule). */
+html.theme-anim :is(.tt-moon, .tt-shadow) {
+  transition: transform 0.65s cubic-bezier(0.16, 1, 0.3, 1) !important;
+}
+
 @media (prefers-reduced-motion: reduce) {
-  .tt-fill,
+  .tt-moon,
+  .tt-shadow,
   html.theme-anim,
   html.theme-anim * {
     transition: none !important;
