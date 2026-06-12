@@ -39,6 +39,9 @@ export function SiteHeader({activeHref}: {activeHref?: string}) {
       animate={{y: hidden ? '-100%' : '0%'}}
       transition={reduce ? {duration: 0} : {duration: 0.35, ease: [0.16, 1, 0.3, 1]}}
       className="fixed inset-x-0 top-0 z-50 flex flex-col items-center px-3 py-5 md:px-[30px]"
+      // Anchored during route view transitions (see globals.css) so the
+      // chrome holds still while page content animates beneath it.
+      style={{viewTransitionName: 'site-header'}}
     >
       {/* Backdrop: transparent at the top (over the hero), fades to a blurred
           bar once scrolled so the logo/nav read over busy media. */}

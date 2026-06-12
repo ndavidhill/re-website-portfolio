@@ -1,6 +1,11 @@
 import type {NextConfig} from 'next'
 
 const nextConfig: NextConfig = {
+  experimental: {
+    // React <ViewTransition> integration — drives the cross-route page
+    // transitions + the work-card → case-study shared-element morph.
+    viewTransition: true,
+  },
   images: {
     remotePatterns: [
       {protocol: 'https', hostname: 'cdn.sanity.io'},

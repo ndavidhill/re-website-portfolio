@@ -1,6 +1,7 @@
 import type {Metadata} from 'next'
 import localFont from 'next/font/local'
 import {designVariablesCss} from '@/lib/design'
+import {PageTransition} from '@/components/PageTransition'
 import './globals.css'
 
 const graphik = localFont({
@@ -71,7 +72,7 @@ export default function RootLayout({
         <style dangerouslySetInnerHTML={{__html: designVariablesCss()}} />
       </head>
       <body className="min-h-full flex flex-col bg-canvas text-text-primary font-sans">
-        {children}
+        <PageTransition>{children}</PageTransition>
       </body>
     </html>
   )

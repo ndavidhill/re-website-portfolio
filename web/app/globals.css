@@ -64,6 +64,82 @@ html.theme-anim * {
   }
 }
 
+/* ──────────────────────────────────────────────────────────────────────────
+   Page transitions — View Transitions API (React <ViewTransition>).
+
+   `page-exit` / `page-enter` are the classes assigned by PageTransition.tsx;
+   `site-header` is a static view-transition-name on the fixed header.
+
+   Choreography: the new page rises from the bottom edge as a full sheet
+   (transition wipe) while the old page dims and drifts back beneath it
+   (depth recede). The old page is deliberately not scaled — snapshots span
+   the full page height, so scaling a scrolled page warps around an
+   offscreen origin. Easing is the site's ease-out-expo.                    */
+
+/* Both page backgrounds are the same canvas — skip the default root
+   crossfade so nothing flashes behind the sheet. */
+::view-transition-old(root),
+::view-transition-new(root) {
+  animation: none;
+}
+
+/* Old page: sinks back beneath the incoming sheet. */
+::view-transition-group(.page-exit) {
+  z-index: 10;
+}
+::view-transition-old(.page-exit) {
+  animation: 760ms cubic-bezier(0.16, 1, 0.3, 1) both vt-page-recede;
+}
+/* New page: the sheet. Rounded leading edge flattens as it lands. */
+::view-transition-group(.page-enter) {
+  z-index: 30;
+}
+::view-transition-new(.page-enter) {
+  animation: 760ms cubic-bezier(0.16, 1, 0.3, 1) both vt-page-sheet;
+  box-shadow: 0 -24px 90px rgba(0, 0, 0, 0.45);
+}
+@keyframes vt-page-recede {
+  to {
+    filter: brightness(0.55);
+    transform: translateY(-7vh);
+  }
+}
+@keyframes vt-page-sheet {
+  from {
+    transform: translateY(100vh);
+    border-radius: 20px 20px 0 0;
+  }
+  70% {
+    border-radius: 16px 16px 0 0;
+  }
+  to {
+    transform: translateY(0);
+    border-radius: 0;
+  }
+}
+
+/* Anchor the fixed header — content moves, the chrome doesn't. */
+::view-transition-group(site-header) {
+  animation: none;
+  z-index: 60;
+}
+::view-transition-old(site-header) {
+  display: none;
+}
+::view-transition-new(site-header) {
+  animation: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  ::view-transition-group(*),
+  ::view-transition-image-pair(*),
+  ::view-transition-old(*),
+  ::view-transition-new(*) {
+    animation-duration: 0s !important;
+    animation-delay: 0s !important;
+  }
+}
+
 /* Infinite Layers Grid (/play) — caption mask reveal as a tile enters view.
    The inner span sits below its clip until the tile is .lg-visible. */
 .lg-caption {
