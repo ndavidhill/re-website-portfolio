@@ -101,7 +101,7 @@ export function MobileNav({activeHref}: {activeHref?: string}) {
                     'text-[40px] font-medium leading-[44px] tracking-[-0.6px] transition-colors ' +
                     (isActive
                       ? 'text-text-primary'
-                      : 'text-text-faint hover:text-text-primary')
+                      : 'text-text-secondary hover:text-text-primary')
                   }
                 >
                   {item.label}

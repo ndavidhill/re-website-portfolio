@@ -197,14 +197,16 @@ export const ui = {
 // COLORS — single source of truth. Emitted as CSS variables at runtime.
 // ─────────────────────────────────────────────────────────────────────────────
 
-/** Dark palette — the default theme. */
+/** Dark palette — the default theme. textFaint is the dimmest tier that still
+ *  clears WCAG AA for normal text on canvas (#767676 ≈ 4.6:1 on black —
+ *  the previous #525252 measured 2.7:1 and failed even large-text AA). */
 export const colors = {
   canvas: '#000000',
   surface: '#1d1d1d',
   textPrimary: '#eeeeee',
   textSecondary: '#9f9f9f',
   textMuted: '#b3b3b3',
-  textFaint: '#525252',
+  textFaint: '#767676',
   border: '#474747',
 } as const
 
@@ -213,15 +215,17 @@ export const colors = {
  * UI/canvas #ffffff, UI/surface #f6f6f6, UI/border #b4b4b4,
  * Content/primary #1d1d1d, Content/secondary #525252. textMuted and textFaint
  * have no 1:1 Figma token for our names, so they're derived to keep the same
- * visual relationships on a light ground.
+ * visual relationships on a light ground — while keeping every tier above
+ * WCAG AA for normal text on white (secondary 7.9:1, muted 5.4:1, faint
+ * 4.6:1; the previous faint #8f8f8f measured 3.2:1 and failed).
  */
 export const lightColors: Record<keyof typeof colors, string> = {
   canvas: '#ffffff',
   surface: '#f6f6f6',
   textPrimary: '#1d1d1d',
   textSecondary: '#525252',
-  textMuted: '#767676',
-  textFaint: '#8f8f8f',
+  textMuted: '#6a6a6a',
+  textFaint: '#757575',
   border: '#b4b4b4',
 }
 

@@ -9,7 +9,11 @@ import {scroll} from '@/lib/design'
 // reel never overflows on small screens. Heights derive from the 788×443 ratio.
 const MAX_INIT_WIDTH = 788
 const INIT_ASPECT = 443 / 788 // height / width
+// Docked reel width. On phones the desktop size would cover ~40% of the
+// viewport and sit over the awards/labs/footer, so it docks much smaller.
 const MAX_DOCK_WIDTH = 340
+const MAX_DOCK_WIDTH_MOBILE = 150
+const MOBILE_BREAKPOINT = 768
 const DOCK_MARGIN = 24
 
 // Scroll band over which the video animates from centered to docked.
@@ -54,7 +58,9 @@ export function StickyHomeVideo({src, poster}: Props) {
   // phones (centered width never exceeds viewport − 2×margin).
   const initWidth = Math.min(MAX_INIT_WIDTH, viewport.w - DOCK_MARGIN * 2)
   const initHeight = initWidth * INIT_ASPECT
-  const dockWidth = Math.min(MAX_DOCK_WIDTH, viewport.w - DOCK_MARGIN * 2)
+  const maxDock =
+    viewport.w < MOBILE_BREAKPOINT ? MAX_DOCK_WIDTH_MOBILE : MAX_DOCK_WIDTH
+  const dockWidth = Math.min(maxDock, viewport.w - DOCK_MARGIN * 2)
   const dockHeight = dockWidth * INIT_ASPECT
   const dockScale = dockWidth / initWidth
 

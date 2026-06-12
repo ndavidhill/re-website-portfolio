@@ -18,6 +18,8 @@ type RevealProps = {
   /** Rendered element — use 'li' inside lists so semantics (and per-item
    *  borders like divide-y) stay on the animated element itself. */
   as?: 'div' | 'li' | 'span'
+  /** ARIA role for the animated element (e.g. 'row' in an ARIA table). */
+  role?: string
 }
 
 export function Reveal({
@@ -28,18 +30,24 @@ export function Reveal({
   duration = animation.duration.medium,
   rootMarginPx = animation.reveal.rootMarginPx,
   as = 'div',
+  role,
 }: RevealProps) {
   const prefersReduced = useReducedMotion()
   const Tag = as
   const MotionTag = motion[as]
 
   if (prefersReduced) {
-    return <Tag className={className}>{children}</Tag>
+    return (
+      <Tag className={className} role={role}>
+        {children}
+      </Tag>
+    )
   }
 
   return (
     <MotionTag
       className={className}
+      role={role}
       initial={{opacity: 0, y: offset}}
       whileInView={{opacity: 1, y: 0}}
       viewport={{once: true, margin: `0px 0px -${rootMarginPx}px 0px`}}

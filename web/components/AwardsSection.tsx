@@ -32,23 +32,40 @@ export function AwardsSection({heading, awards}: Props) {
           Each row is its own Reveal (as="li" keeps the divide-y rule on the
           animated element, so the hairline arrives with its row). The modulo
           stagger cascades whichever batch of rows enters together while rows
-          reached later by scrolling still appear near-instantly. */}
-      <div className="border-t border-border pt-5">
+          reached later by scrolling still appear near-instantly.
+
+          Semantics: a ul styled as a table loses column↔header association
+          for screen readers, so the structure carries ARIA table roles
+          (table → row/columnheader, rowgroup → row/cell).
+
+          Layout: 4-column grid on md+; on mobile those columns would crush
+          to ~100px each and rows ran ~190px tall, so rows restack instead —
+          description + year on the first line, client and award full-width
+          beneath (same four cells, rearranged via order + col-span). */}
+      <div
+        role="table"
+        aria-label={heading ?? 'Awards and recognition'}
+        className="border-t border-border pt-5"
+      >
         <Reveal
+          role="row"
           delay={0.08}
           offset={14}
           duration={0.5}
-          className="grid grid-cols-[2fr_1.5fr_2fr_0.75fr] gap-3 pb-4 text-base font-medium leading-6 tracking-[-0.4px] text-text-secondary md:gap-4 md:text-md"
+          className="hidden pb-4 text-xs font-medium uppercase leading-4 tracking-[0.5px] text-text-faint md:grid md:grid-cols-[2fr_1.5fr_2fr_0.75fr] md:gap-4"
         >
-          <div>Description</div>
-          <div>Client</div>
-          <div>Awards</div>
-          <div className="text-right">Year</div>
+          <div role="columnheader">Description</div>
+          <div role="columnheader">Client</div>
+          <div role="columnheader">Awards</div>
+          <div role="columnheader" className="text-right">
+            Year
+          </div>
         </Reveal>
-        <ul className="divide-y divide-border">
+        <ul role="rowgroup" className="divide-y divide-border">
           {awards.map((a, i) => (
             <Reveal
               as="li"
+              role="row"
               // _key alone collides for a couple of seeded rows (e.g. the two
               // Optus entries) — suffix the index so React never drops a row.
               // Safe: the list is static, never reordered client-side.
@@ -57,12 +74,29 @@ export function AwardsSection({heading, awards}: Props) {
               offset={12}
               duration={0.5}
               rootMarginPx={20}
-              className="grid grid-cols-[2fr_1.5fr_2fr_0.75fr] gap-3 py-3 text-sm leading-6 tracking-[-0.27px] text-text-primary md:gap-4 md:text-lg"
+              className="grid grid-cols-[1fr_auto] gap-x-4 gap-y-1 py-3 text-sm leading-6 tracking-[-0.27px] text-text-primary md:grid-cols-[2fr_1.5fr_2fr_0.75fr] md:gap-4 md:text-lg"
             >
-              <span>{a.description}</span>
-              <span className="text-text-secondary">{a.client}</span>
-              <span className="text-text-secondary">{a.award}</span>
-              <span className="justify-self-end text-right text-text-faint">{a.year}</span>
+              <span role="cell" className="order-1 md:order-none">
+                {a.description}
+              </span>
+              <span
+                role="cell"
+                className="order-3 col-span-2 text-text-secondary md:order-none md:col-span-1"
+              >
+                {a.client}
+              </span>
+              <span
+                role="cell"
+                className="order-4 col-span-2 text-text-secondary md:order-none md:col-span-1"
+              >
+                {a.award}
+              </span>
+              <span
+                role="cell"
+                className="order-2 justify-self-end text-right text-text-faint md:order-none"
+              >
+                {a.year}
+              </span>
             </Reveal>
           ))}
         </ul>
