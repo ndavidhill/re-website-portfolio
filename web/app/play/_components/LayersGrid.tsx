@@ -194,8 +194,13 @@ export function LayersGrid({items}: Props) {
     const build = () => {
       const winW = window.innerWidth
       const winH = window.innerHeight
-      const k = winW / CW // uniform scale (scaleX === scaleY)
-      const patternW = winW // == CW * k
+      // Uniform scale keyed to the dominant axis so ONE pattern copy covers
+      // the viewport both ways. Keyed to width alone (the reference's
+      // landscape-only assumption), a portrait phone got a ~280px-tall
+      // pattern needing 4 vertical copies — twice the tiles (and videos) of
+      // desktop, at thumbnail sizes.
+      const k = Math.max(winW / CW, winH / CH)
+      const patternW = CW * k
       const patternH = CH * k
 
       // Replicate enough copies to always cover the viewport, then wrap by the
@@ -389,6 +394,42 @@ export function LayersGrid({items}: Props) {
     )
     container.querySelectorAll('.lg-caption').forEach((c) => io.observe(c))
 
+    // Decoder economy: videos only play while (nearly) on screen, and only up
+    // to a hardware-realistic cap. Every tile copy is its own <video>; with
+    // all of them autoplaying, mobile blows its concurrent-decoder budget and
+    // the whole canvas janks. Beyond the cap, tiles idle on their first frame
+    // (poster/decoded frame) — at these tile sizes the difference is invisible
+    // until they get their turn.
+    const MAX_PLAYING = window.innerWidth < 768 ? 10 : 24
+    const visibleVids = new Set<HTMLVideoElement>()
+    const syncPlayback = () => {
+      let n = 0
+      visibleVids.forEach((v) => {
+        if (n < MAX_PLAYING) {
+          v.play().catch(() => {})
+          n++
+        } else {
+          v.pause()
+        }
+      })
+    }
+    const vidIo = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((en) => {
+          const v = en.target as HTMLVideoElement
+          if (en.isIntersecting) {
+            visibleVids.add(v)
+          } else {
+            visibleVids.delete(v)
+            v.pause()
+          }
+        })
+        syncPlayback()
+      },
+      {root: container, rootMargin: '15%'},
+    )
+    container.querySelectorAll('video').forEach((v) => vidIo.observe(v))
+
     return () => {
       cancelAnimationFrame(raf)
       container.removeEventListener('wheel', onWheel)
@@ -396,6 +437,7 @@ export function LayersGrid({items}: Props) {
       window.removeEventListener('pointermove', onPointerMove)
       window.removeEventListener('pointerup', onPointerUp)
       io.disconnect()
+      vidIo.disconnect()
       document.documentElement.classList.remove('grabbing')
     }
   }, [tiles, reduce])
@@ -455,6 +497,8 @@ export function LayersGrid({items}: Props) {
                 mediaRef={(el) => {
                   imgRef.current[i] = el
                 }}
+                requestWidth={mediaWidth(t.w)}
+                observed
               />
             </div>
             <small className="lg-caption mt-3 block max-w-full overflow-hidden text-[11px] leading-[1.3] tracking-[-0.084px] text-text-secondary md:text-xs">
@@ -468,15 +512,35 @@ export function LayersGrid({items}: Props) {
 }
 
 /**
+ * Sanity request width for a tile rendered at `tileW` CSS px — accounts for
+ * the parallax over-scale and (capped) devicePixelRatio, then snaps to shared
+ * steps so duplicate tiles hit the same cached URL.
+ */
+function mediaWidth(tileW: number): number {
+  const dpr =
+    typeof window !== 'undefined' ? Math.min(window.devicePixelRatio || 1, 2) : 1
+  const target = tileW * IMG_OVERSCALE * dpr
+  if (target <= 400) return 400
+  if (target <= 800) return 800
+  return 1200
+}
+
+/**
  * Tile media — image wins over video (matching the schema rule). The element is
  * over-scaled and ref'd so the loop can apply the cursor-parallax transform.
+ * Videos don't autoplay here when `observed` — the canvas's
+ * IntersectionObserver starts/stops them as they pan in and out of view.
  */
 function TileMedia({
   item,
   mediaRef,
+  requestWidth = 1200,
+  observed = false,
 }: {
   item: LayerItem
   mediaRef?: (el: HTMLElement | null) => void
+  requestWidth?: number
+  observed?: boolean
 }) {
   const common =
     'absolute inset-0 h-full w-full object-cover will-change-transform'
@@ -485,7 +549,7 @@ function TileMedia({
       // eslint-disable-next-line @next/next/no-img-element
       <img
         ref={mediaRef as (el: HTMLImageElement | null) => void}
-        src={urlForImage(item.image).width(1200).auto('format').url()}
+        src={urlForImage(item.image).width(requestWidth).auto('format').url()}
         alt={item.image.alt ?? item.caption}
         draggable={false}
         className={common}
@@ -498,8 +562,8 @@ function TileMedia({
       <video
         ref={mediaRef as (el: HTMLVideoElement | null) => void}
         src={item.videoUrl}
-        poster={item.poster ? urlForImage(item.poster).width(1200).auto('format').url() : undefined}
-        autoPlay
+        poster={item.poster ? urlForImage(item.poster).width(requestWidth).auto('format').url() : undefined}
+        autoPlay={!observed}
         muted
         loop
         playsInline
