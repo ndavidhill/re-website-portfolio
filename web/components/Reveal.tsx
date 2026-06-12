@@ -15,6 +15,9 @@ type RevealProps = {
   duration?: number
   /** Negative root margin so animation triggers slightly before fully visible. */
   rootMarginPx?: number
+  /** Rendered element — use 'li' inside lists so semantics (and per-item
+   *  borders like divide-y) stay on the animated element itself. */
+  as?: 'div' | 'li' | 'span'
 }
 
 export function Reveal({
@@ -24,15 +27,18 @@ export function Reveal({
   offset = animation.reveal.offset,
   duration = animation.duration.medium,
   rootMarginPx = animation.reveal.rootMarginPx,
+  as = 'div',
 }: RevealProps) {
   const prefersReduced = useReducedMotion()
+  const Tag = as
+  const MotionTag = motion[as]
 
   if (prefersReduced) {
-    return <div className={className}>{children}</div>
+    return <Tag className={className}>{children}</Tag>
   }
 
   return (
-    <motion.div
+    <MotionTag
       className={className}
       initial={{opacity: 0, y: offset}}
       whileInView={{opacity: 1, y: 0}}
@@ -40,7 +46,7 @@ export function Reveal({
       transition={{duration, ease: animation.ease, delay}}
     >
       {children}
-    </motion.div>
+    </MotionTag>
   )
 }
 
