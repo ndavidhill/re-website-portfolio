@@ -7,6 +7,7 @@ import {Reveal} from '@/components/Reveal'
 import {animation, type} from '@/lib/design'
 import type {InfoTitleBody} from '@/lib/sanity'
 import {CONNECTED_HEADING, CONNECTED_LAYERS} from './info-content'
+import {Eyebrow, Panel} from './InfoBits'
 
 interface Props {
   heading?: string
@@ -47,7 +48,10 @@ export function ConnectedBrand({heading, layers}: Props) {
 
   return (
     <section className="flex flex-col gap-10 md:gap-[60px]">
-      <div className="border-t border-border pt-5">
+      <div className="flex flex-col gap-5 border-t border-border pt-5">
+        <Reveal>
+          <Eyebrow>Connected</Eyebrow>
+        </Reveal>
         <AnimatedHeading
           text={heading || CONNECTED_HEADING}
           as="h2"
@@ -56,12 +60,13 @@ export function ConnectedBrand({heading, layers}: Props) {
       </div>
 
       <div className="grid grid-cols-1 gap-10 md:grid-cols-2 md:gap-[60px]">
-        {/* Diagram — concentric rings building outward from the core. */}
+        {/* Diagram — concentric rings building outward from the core, framed in
+            a surface panel like the site's media panels. */}
         <Reveal className="md:order-first md:sticky md:top-[120px] md:self-start">
-          <div className="relative mx-auto w-full max-w-[460px]">
+          <Panel className="flex aspect-square items-center justify-center">
             <motion.svg
               viewBox="0 0 360 360"
-              className="block w-full"
+              className="block w-full max-w-[400px]"
               initial={reduce ? 'show' : 'hidden'}
               whileInView="show"
               viewport={{once: true, margin: '0px 0px -80px 0px'}}
@@ -108,7 +113,7 @@ export function ConnectedBrand({heading, layers}: Props) {
                 {pad(active + 1)} / {pad(n)}
               </text>
             </motion.svg>
-          </div>
+          </Panel>
         </Reveal>
 
         {/* Layer list — hover/focus lights the matching ring. */}
