@@ -328,15 +328,39 @@ export interface BrandPillar {
  * the right; their `image` swaps into the left column on hover. Hero videos
  * are theme-aware (dark default, optional light variant).
  */
+export interface InfoTitleBody {
+  _key?: string
+  title?: string
+  label?: string
+  body?: string
+}
+
 export interface InfoPage {
   _id: string
   heroVideoDark?: {asset?: {url?: string; mimeType?: string}}
   heroVideoLight?: {asset?: {url?: string; mimeType?: string}}
   heroVideoPoster?: SanityImage
+  // Approach narrative (deck slides 1–3, 5). Optional — components fall back
+  // to the deck copy in info-content.ts when a field is empty.
+  problemHeading?: string
+  problemIntro?: string
+  problemPoints?: InfoTitleBody[]
+  marketHeading?: string
+  marketIntro?: string
+  marketTypes?: InfoTitleBody[]
+  marketPunchline?: string
+  systemHeading?: string
+  systemIntro?: string
+  systemPhases?: InfoTitleBody[]
+  connectedHeading?: string
+  connectedLayers?: InfoTitleBody[]
   leadHeading: string
   pillarsIntro?: string
   pillarsDefaultImage?: SanityImage
   pillars: BrandPillar[]
+  frameworkConviction?: string
+  frameworkCollaborators?: string
+  frameworkCodes?: string
   collectiveHeading?: string
   collectiveSubheading?: string
   collectiveIntro?: string
@@ -528,10 +552,25 @@ export const infoPageQuery = groq`
     heroVideoDark{asset->{url, mimeType}},
     heroVideoLight{asset->{url, mimeType}},
     heroVideoPoster{..., asset->},
+    problemHeading,
+    problemIntro,
+    problemPoints[]{_key, label, body},
+    marketHeading,
+    marketIntro,
+    marketTypes[]{_key, title, body},
+    marketPunchline,
+    systemHeading,
+    systemIntro,
+    systemPhases[]{_key, title, body},
+    connectedHeading,
+    connectedLayers[]{_key, title, body},
     leadHeading,
     pillarsIntro,
     pillarsDefaultImage{..., asset->},
     pillars[]{_key, title, body, image{..., asset->}},
+    frameworkConviction,
+    frameworkCollaborators,
+    frameworkCodes,
     collectiveHeading,
     collectiveSubheading,
     collectiveIntro,

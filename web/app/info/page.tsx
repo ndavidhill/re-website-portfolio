@@ -4,8 +4,13 @@ import {SiteHeader} from '@/components/SiteHeader'
 import {ContactAndFooter} from '@/components/ContactAndFooter'
 import {AwardsSection} from '@/components/AwardsSection'
 import {InfoHero} from './_components/InfoHero'
+import {ProblemSection} from './_components/ProblemSection'
+import {MarketGap} from './_components/MarketGap'
+import {BrandSystem} from './_components/BrandSystem'
 import {BrandPillars} from './_components/BrandPillars'
+import {ConnectedBrand} from './_components/ConnectedBrand'
 import {OneCollective} from './_components/OneCollective'
+import {FRAMEWORK_COLLABORATORS, FRAMEWORK_CODES, FRAMEWORK_CONVICTION} from './_components/info-content'
 
 export async function generateMetadata(): Promise<Metadata> {
   const info = await getInfoPage()
@@ -52,11 +57,40 @@ export default async function InfoPage() {
           alt={info.heroVideoPoster?.alt ?? 're.design hero'}
         />
 
+        {/* Approach narrative (deck): problem → market gap → system →
+            framework (pillars) → connected brand. */}
+        <ProblemSection
+          heading={info.problemHeading}
+          intro={info.problemIntro}
+          points={info.problemPoints}
+        />
+
+        <MarketGap
+          heading={info.marketHeading}
+          intro={info.marketIntro}
+          types={info.marketTypes}
+          punchline={info.marketPunchline}
+        />
+
+        <BrandSystem
+          heading={info.systemHeading}
+          intro={info.systemIntro}
+          phases={info.systemPhases}
+        />
+
         <BrandPillars
           heading={info.leadHeading}
           intro={info.pillarsIntro}
           defaultImage={info.pillarsDefaultImage}
           pillars={info.pillars ?? []}
+          conviction={info.frameworkConviction ?? FRAMEWORK_CONVICTION}
+          collaborators={info.frameworkCollaborators ?? FRAMEWORK_COLLABORATORS}
+          codes={info.frameworkCodes ?? FRAMEWORK_CODES}
+        />
+
+        <ConnectedBrand
+          heading={info.connectedHeading}
+          layers={info.connectedLayers}
         />
 
         <OneCollective

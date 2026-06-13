@@ -12,6 +12,11 @@ interface Props {
   intro?: string
   defaultImage?: SanityImage
   pillars: BrandPillar[]
+  /** Deck slide 4 framing: a conviction lead-in above the pillars, and two
+   *  closing bands (collaborators, connected experiences & codes) below. */
+  conviction?: string
+  collaborators?: string
+  codes?: string
 }
 
 const EASE = 'ease-[cubic-bezier(0.16,1,0.3,1)]'
@@ -30,8 +35,17 @@ const EASE = 'ease-[cubic-bezier(0.16,1,0.3,1)]'
  *
  * Each pillar supplies its own image; `defaultImage` is a per-pillar fallback.
  */
-export function BrandPillars({heading, intro, defaultImage, pillars}: Props) {
+export function BrandPillars({
+  heading,
+  intro,
+  defaultImage,
+  pillars,
+  conviction,
+  collaborators,
+  codes,
+}: Props) {
   const [activeIdx, setActiveIdx] = useState(0)
+  const bands = [collaborators, codes].filter(Boolean) as string[]
 
   const total = pillars.length
   const pad = (n: number) => String(n).padStart(2, '0')
@@ -45,6 +59,13 @@ export function BrandPillars({heading, intro, defaultImage, pillars}: Props) {
           as="h2"
           className={`max-w-[800px] text-text-primary ${type.h1}`}
         />
+        {conviction && (
+          <Reveal delay={0.08}>
+            <p className={`mt-6 max-w-[640px] text-text-secondary ${type.body}`}>
+              {conviction}
+            </p>
+          </Reveal>
+        )}
       </div>
 
       <div className="grid grid-cols-1 gap-10 md:grid-cols-2 md:gap-[60px]">
@@ -175,6 +196,23 @@ export function BrandPillars({heading, intro, defaultImage, pillars}: Props) {
           </Reveal>
         </div>
       </div>
+
+      {/* Closing framework bands — collaborators + connected experiences & codes
+          (deck slide 4). The 5 C's are held within these. */}
+      {bands.length > 0 && (
+        <div className="flex flex-col">
+          {bands.map((b, i) => (
+            <Reveal
+              as="div"
+              key={i}
+              delay={0.06 + i * 0.06}
+              className="border-t border-border py-5"
+            >
+              <p className={`max-w-[760px] text-text-secondary ${type.body}`}>{b}</p>
+            </Reveal>
+          ))}
+        </div>
+      )}
     </section>
   )
 }
