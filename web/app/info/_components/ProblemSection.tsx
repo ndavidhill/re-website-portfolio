@@ -11,9 +11,10 @@ interface Props {
 }
 
 /**
- * Deck slide 1 — the problem. Heading + intro, then up to three supporting
- * points (an optional large label like "$3T" over a short line). Content-first,
- * on-brand spacing; visual design comes in a later pass.
+ * Deck slide 1 — the problem. The composition is deliberately asymmetric: one
+ * outsized figure (the $3T cost) set against short qualitative statements, so it
+ * reads as evidence of drift rather than a uniform stat grid. Monochrome,
+ * hairline-divided, on the site's type scale.
  */
 export function ProblemSection({heading, intro, points}: Props) {
   const items =
@@ -22,46 +23,44 @@ export function ProblemSection({heading, intro, points}: Props) {
       : PROBLEM_POINTS
 
   return (
-    <section className="flex flex-col gap-10 md:gap-[60px]">
+    <section className="flex flex-col gap-12 md:gap-20">
       <div className="border-t border-border pt-5">
         <AnimatedHeading
           text={heading || PROBLEM_HEADING}
           as="h2"
           className={`max-w-[900px] text-text-primary ${type.h1}`}
         />
-      </div>
-
-      <div className="grid grid-cols-1 gap-10 md:grid-cols-2 md:gap-[60px]">
-        <Reveal>
-          <p className={`max-w-[460px] text-text-secondary ${type.bodyLarge}`}>
+        <Reveal delay={0.08}>
+          <p className={`mt-6 max-w-[560px] text-text-secondary ${type.bodyLarge}`}>
             {intro || PROBLEM_INTRO}
           </p>
         </Reveal>
+      </div>
 
-        <ul className="grid grid-cols-1 gap-x-[60px] gap-y-8 sm:grid-cols-3 md:grid-cols-1 md:gap-y-0">
-          {items.map((p, i) => (
-            <Reveal
-              as="li"
-              key={i}
-              delay={0.06 + i * 0.06}
-              className="border-t border-border pt-5"
-            >
-              {p.label && (
-                <span className={`block text-text-primary ${type.h2Large}`}>
-                  {p.label}
-                </span>
-              )}
-              <p
-                className={`max-w-[320px] text-text-secondary ${type.bodySmall} ${
-                  p.label ? 'mt-3' : ''
-                }`}
-              >
+      <ul className="grid grid-cols-1 gap-x-[60px] gap-y-10 md:grid-cols-3">
+        {items.map((p, i) => (
+          <Reveal
+            as="li"
+            key={i}
+            delay={0.06 + i * 0.08}
+            offset={16}
+            className="flex flex-col border-t border-border pt-5"
+          >
+            {p.label ? (
+              <>
+                <span className={`text-text-primary ${type.display}`}>{p.label}</span>
+                <p className={`mt-4 max-w-[300px] text-text-faint ${type.bodySmall}`}>
+                  {p.body}
+                </p>
+              </>
+            ) : (
+              <p className="max-w-[320px] text-[22px] font-medium leading-[26px] tracking-[-0.4px] text-text-primary md:text-2xl md:leading-7">
                 {p.body}
               </p>
-            </Reveal>
-          ))}
-        </ul>
-      </div>
+            )}
+          </Reveal>
+        ))}
+      </ul>
     </section>
   )
 }

@@ -21,6 +21,14 @@ interface Props {
 
 const EASE = 'ease-[cubic-bezier(0.16,1,0.3,1)]'
 
+/** Split "Label — statement" framework copy into an eyebrow + body. */
+function splitBand(s: string): {label: string; body: string} {
+  const parts = s.split(/\s+—\s+/)
+  return parts.length > 1
+    ? {label: parts[0], body: parts.slice(1).join(' — ')}
+    : {label: '', body: s}
+}
+
 /**
  * Brand pillars — an indexed, hairline-divided list paired with a cross-fading
  * media panel. The five points read as one system (numbered 01–N, divided by
@@ -59,13 +67,24 @@ export function BrandPillars({
           as="h2"
           className={`max-w-[800px] text-text-primary ${type.h1}`}
         />
-        {conviction && (
-          <Reveal delay={0.08}>
-            <p className={`mt-6 max-w-[640px] text-text-secondary ${type.body}`}>
-              {conviction}
-            </p>
-          </Reveal>
-        )}
+        {conviction &&
+          (() => {
+            const {label, body} = splitBand(conviction)
+            return (
+              <Reveal delay={0.08} className="mt-6 max-w-[640px]">
+                {label && (
+                  <span
+                    className={`block uppercase tracking-[0.4px] text-text-faint ${type.caption}`}
+                  >
+                    {label}
+                  </span>
+                )}
+                <p className={`text-text-secondary ${type.body} ${label ? 'mt-2' : ''}`}>
+                  {body}
+                </p>
+              </Reveal>
+            )
+          })()}
       </div>
 
       <div className="grid grid-cols-1 gap-10 md:grid-cols-2 md:gap-[60px]">
@@ -201,16 +220,24 @@ export function BrandPillars({
           (deck slide 4). The 5 C's are held within these. */}
       {bands.length > 0 && (
         <div className="flex flex-col">
-          {bands.map((b, i) => (
-            <Reveal
-              as="div"
-              key={i}
-              delay={0.06 + i * 0.06}
-              className="border-t border-border py-5"
-            >
-              <p className={`max-w-[760px] text-text-secondary ${type.body}`}>{b}</p>
-            </Reveal>
-          ))}
+          {bands.map((b, i) => {
+            const {label, body} = splitBand(b)
+            return (
+              <Reveal
+                as="div"
+                key={i}
+                delay={0.06 + i * 0.06}
+                className="grid grid-cols-1 gap-x-[60px] gap-y-2 border-t border-border py-5 md:grid-cols-[minmax(0,200px)_1fr]"
+              >
+                <span
+                  className={`uppercase tracking-[0.4px] text-text-faint ${type.caption}`}
+                >
+                  {label || 'Also'}
+                </span>
+                <p className={`max-w-[760px] text-text-secondary ${type.body}`}>{body}</p>
+              </Reveal>
+            )
+          })}
         </div>
       )}
     </section>
