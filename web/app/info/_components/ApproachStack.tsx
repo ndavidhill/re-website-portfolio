@@ -103,7 +103,7 @@ export function ApproachStack({problem, market, system}: Props) {
                   12px) so it threads through the dot centres. */}
               <span
                 aria-hidden
-                className="pointer-events-none absolute left-[11.5px] top-3 bottom-3 w-px bg-border"
+                className="pointer-events-none absolute left-[11.5px] top-3 bottom-3 z-10 w-px bg-border"
               />
               {items.map((it, i) => {
                 const isActive = i === active
@@ -297,7 +297,7 @@ function SystemContent({intro, phases}: {intro?: string; phases?: InfoTitleBody[
                 from the first node to the return cue. */}
             <span
               aria-hidden
-              className="pointer-events-none absolute left-[11.5px] top-3 bottom-[3.25rem] w-px bg-border"
+              className="pointer-events-none absolute left-[11.5px] top-3 bottom-[3.25rem] z-10 w-px bg-border"
             />
             {items.map((p, i) => (
               <li
