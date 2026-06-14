@@ -333,6 +333,8 @@ export interface InfoTitleBody {
   title?: string
   label?: string
   body?: string
+  /** Longer copy revealed by "Expand for details" (system phases). */
+  detail?: string
 }
 
 export interface InfoPage {
@@ -561,7 +563,7 @@ export const infoPageQuery = groq`
     marketPunchline,
     systemHeading,
     systemIntro,
-    systemPhases[]{_key, title, body},
+    systemPhases[]{_key, title, body, detail},
     connectedHeading,
     connectedLayers[]{_key, title, body},
     leadHeading,

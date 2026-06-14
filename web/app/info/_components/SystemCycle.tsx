@@ -8,6 +8,7 @@ import {Panel} from './InfoBits'
 interface Phase {
   title: string
   body: string
+  detail?: string
 }
 
 const pad = (n: number) => String(n).padStart(2, '0')
@@ -41,6 +42,10 @@ export function SystemCycle({phases}: {phases: Phase[]}) {
   const n = Math.min(phases.length, 4)
   const [active, setActive] = useState(0)
   const [paused, setPaused] = useState(false)
+  // Keyed to the active index so the detail auto-collapses when the phase
+  // changes (no effect / cascading setState needed).
+  const [expandedIdx, setExpandedIdx] = useState(-1)
+  const expanded = expandedIdx === active
 
   useEffect(() => {
     if (reduce || paused || n < 2) return
@@ -49,6 +54,7 @@ export function SystemCycle({phases}: {phases: Phase[]}) {
   }, [reduce, paused, n])
 
   const activePhase = phases[active]
+  const nextPhase = phases[(active + 1) % n]
 
   return (
     <Panel className="flex flex-col gap-6">
@@ -120,8 +126,9 @@ export function SystemCycle({phases}: {phases: Phase[]}) {
         })}
       </div>
 
-      {/* Active phase detail */}
-      <div className="border-t border-border pt-5">
+      {/* Active phase detail — contrast container (canvas card on the surface
+          panel) with a pointer to the next phase and an expand toggle. */}
+      <div className="rounded-[10px] bg-canvas p-5 md:p-6">
         <div className="flex items-baseline gap-2.5">
           <span className={`tabular-nums text-text-faint ${type.caption}`}>
             {pad(active + 1)}
@@ -130,9 +137,44 @@ export function SystemCycle({phases}: {phases: Phase[]}) {
             {activePhase?.title}
           </h3>
         </div>
-        <p className={`mt-2 min-h-[44px] text-text-secondary ${type.bodySmall}`}>
-          {activePhase?.body}
-        </p>
+        <p className={`mt-3 text-text-secondary ${type.bodySmall}`}>{activePhase?.body}</p>
+
+        {/* Expandable detail (grid-rows trick → smooth height; clamped to 5 lines). */}
+        {activePhase?.detail && (
+          <div
+            className={`grid transition-[grid-template-rows] duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] motion-reduce:transition-none ${
+              expanded ? 'grid-rows-[1fr]' : 'grid-rows-[0fr]'
+            }`}
+          >
+            <div className="overflow-hidden">
+              <p className={`line-clamp-5 pt-3 text-text-secondary ${type.bodySmall}`}>
+                {activePhase.detail}
+              </p>
+            </div>
+          </div>
+        )}
+
+        <div className="mt-5 flex items-center justify-between gap-4">
+          <span
+            className={`uppercase tracking-[0.4px] text-text-faint ${type.caption}`}
+            aria-hidden
+          >
+            → {nextPhase?.title}
+          </span>
+          {activePhase?.detail && (
+            <button
+              type="button"
+              onClick={() => setExpandedIdx(expanded ? -1 : active)}
+              aria-expanded={expanded}
+              className={`inline-flex items-center gap-1.5 uppercase tracking-[0.4px] text-text-primary outline-none transition-colors hover:text-text-secondary focus-visible:text-text-secondary ${type.caption}`}
+            >
+              {expanded ? 'Collapse' : 'Expand for details'}
+              <span aria-hidden className="text-[14px] leading-none">
+                {expanded ? '−' : '+'}
+              </span>
+            </button>
+          )}
+        </div>
       </div>
     </Panel>
   )

@@ -283,6 +283,7 @@ function SystemContent({intro, phases}: {intro?: string; phases?: InfoTitleBody[
   const items = (phases && phases.length > 0 ? phases : SYSTEM_PHASES).map((p) => ({
     title: p.title ?? '',
     body: p.body ?? '',
+    detail: p.detail,
   }))
   return (
     <div className="flex flex-col gap-6">

@@ -290,6 +290,13 @@ export default defineType({
           fields: [
             {name: 'title', type: 'string', title: 'Title', validation: (Rule) => Rule.required()},
             {name: 'body', type: 'text', rows: 3, title: 'Body'},
+            {
+              name: 'detail',
+              type: 'text',
+              rows: 4,
+              title: 'Detail (expand)',
+              description: 'Longer copy revealed by "Expand for details" — up to ~5 lines.',
+            },
           ],
           preview: {select: {title: 'title', subtitle: 'body'}},
         },
