@@ -99,9 +99,11 @@ export function ApproachStack({problem, market, system}: Props) {
         <div className="hidden md:block">
           <div className="sticky top-[110px]">
             <ol className="relative flex flex-col gap-7">
+              {/* Spine centred on the bullet column (1.5rem wide → centre at
+                  12px) so it threads through the dot centres. */}
               <span
                 aria-hidden
-                className="pointer-events-none absolute left-[6px] top-2 bottom-2 w-px bg-border"
+                className="pointer-events-none absolute left-[11.5px] top-3 bottom-3 w-px bg-border"
               />
               {items.map((it, i) => {
                 const isActive = i === active
@@ -291,9 +293,11 @@ function SystemContent({intro, phases}: {intro?: string; phases?: InfoTitleBody[
       <Reveal delay={0.06}>
         <Panel>
           <ol className="relative">
+            {/* Spine centred on the bullet column (centre at 12px), running
+                from the first node to the return cue. */}
             <span
               aria-hidden
-              className="pointer-events-none absolute left-[6px] top-3 bottom-[3.25rem] w-px bg-border"
+              className="pointer-events-none absolute left-[11.5px] top-3 bottom-[3.25rem] w-px bg-border"
             />
             {items.map((p, i) => (
               <li
