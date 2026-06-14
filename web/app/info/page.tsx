@@ -4,9 +4,7 @@ import {SiteHeader} from '@/components/SiteHeader'
 import {ContactAndFooter} from '@/components/ContactAndFooter'
 import {AwardsSection} from '@/components/AwardsSection'
 import {InfoHero} from './_components/InfoHero'
-import {ProblemSection} from './_components/ProblemSection'
-import {MarketGap} from './_components/MarketGap'
-import {BrandSystem} from './_components/BrandSystem'
+import {ApproachStack} from './_components/ApproachStack'
 import {BrandPillars} from './_components/BrandPillars'
 import {ConnectedBrand} from './_components/ConnectedBrand'
 import {OneCollective} from './_components/OneCollective'
@@ -57,25 +55,25 @@ export default async function InfoPage() {
           alt={info.heroVideoPoster?.alt ?? 're.design hero'}
         />
 
-        {/* Approach narrative (deck): problem → market gap → system →
-            framework (pillars) → connected brand. */}
-        <ProblemSection
-          heading={info.problemHeading}
-          intro={info.problemIntro}
-          points={info.problemPoints}
-        />
-
-        <MarketGap
-          heading={info.marketHeading}
-          intro={info.marketIntro}
-          types={info.marketTypes}
-          punchline={info.marketPunchline}
-        />
-
-        <BrandSystem
-          heading={info.systemHeading}
-          intro={info.systemIntro}
-          phases={info.systemPhases}
+        {/* Approach narrative (deck): the argument (problem → gap → system) as
+            one scroll-synced, accumulating unit, then framework + connected. */}
+        <ApproachStack
+          problem={{
+            heading: info.problemHeading,
+            intro: info.problemIntro,
+            points: info.problemPoints,
+          }}
+          market={{
+            heading: info.marketHeading,
+            intro: info.marketIntro,
+            types: info.marketTypes,
+            punchline: info.marketPunchline,
+          }}
+          system={{
+            heading: info.systemHeading,
+            intro: info.systemIntro,
+            phases: info.systemPhases,
+          }}
         />
 
         <BrandPillars
