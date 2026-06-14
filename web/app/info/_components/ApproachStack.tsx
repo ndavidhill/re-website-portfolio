@@ -100,10 +100,11 @@ export function ApproachStack({problem, market, system}: Props) {
           <div className="sticky top-[110px]">
             <ol className="relative flex flex-col gap-7">
               {/* Spine centred on the bullet column (1.5rem wide → centre at
-                  12px) so it threads through the dot centres. */}
+                  12px); sits behind the dots, which carry an opaque fill so the
+                  line doesn't cut through them. */}
               <span
                 aria-hidden
-                className="pointer-events-none absolute left-[11.5px] top-3 bottom-3 z-10 w-px bg-border"
+                className="pointer-events-none absolute left-[11.5px] top-3 bottom-3 w-px bg-border"
               />
               {items.map((it, i) => {
                 const isActive = i === active
@@ -113,11 +114,11 @@ export function ApproachStack({problem, market, system}: Props) {
                     <span className="flex justify-center pt-1.5">
                       <span
                         aria-hidden
-                        className={`h-[13px] w-[13px] rounded-full border transition-colors duration-500 ease-[cubic-bezier(0.16,1,0.3,1)] motion-reduce:transition-none ${
+                        className={`relative h-[13px] w-[13px] rounded-full border transition-colors duration-500 ease-[cubic-bezier(0.16,1,0.3,1)] motion-reduce:transition-none ${
                           isActive
                             ? 'border-text-primary bg-text-primary'
                             : isPast
-                            ? 'border-text-secondary bg-text-secondary'
+                            ? 'border-text-secondary bg-canvas'
                             : 'border-border bg-canvas'
                         }`}
                       />
@@ -297,7 +298,7 @@ function SystemContent({intro, phases}: {intro?: string; phases?: InfoTitleBody[
                 from the first node to the return cue. */}
             <span
               aria-hidden
-              className="pointer-events-none absolute left-[11.5px] top-3 bottom-[3.25rem] z-10 w-px bg-border"
+              className="pointer-events-none absolute left-[11.5px] top-3 bottom-[3.25rem] w-px bg-border"
             />
             {items.map((p, i) => (
               <li
