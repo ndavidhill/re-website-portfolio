@@ -5,6 +5,7 @@ import {Reveal} from '@/components/Reveal'
 import {type} from '@/lib/design'
 import type {InfoTitleBody} from '@/lib/sanity'
 import {Eyebrow, Panel} from './InfoBits'
+import {SystemCycle} from './SystemCycle'
 import {
   MARKET_HEADING,
   MARKET_INTRO,
@@ -28,7 +29,6 @@ interface Props {
   system: SectionInput & {phases?: InfoTitleBody[]}
 }
 
-const pad = (n: number) => String(n).padStart(2, '0')
 const ARROW_ANGLES = [-45, 135, 45, -135]
 
 /**
@@ -280,10 +280,10 @@ function MarketContent({
 }
 
 function SystemContent({intro, phases}: {intro?: string; phases?: InfoTitleBody[]}) {
-  const items =
-    phases && phases.length > 0
-      ? phases.map((p) => ({title: p.title ?? '', body: p.body ?? ''}))
-      : SYSTEM_PHASES
+  const items = (phases && phases.length > 0 ? phases : SYSTEM_PHASES).map((p) => ({
+    title: p.title ?? '',
+    body: p.body ?? '',
+  }))
   return (
     <div className="flex flex-col gap-6">
       <Reveal>
@@ -292,58 +292,7 @@ function SystemContent({intro, phases}: {intro?: string; phases?: InfoTitleBody[
         </p>
       </Reveal>
       <Reveal delay={0.06}>
-        <Panel>
-          <ol className="relative">
-            {/* Spine centred on the bullet column (centre at 12px), running
-                from the first node to the return cue. */}
-            <span
-              aria-hidden
-              className="pointer-events-none absolute left-[11.5px] top-3 bottom-[3.25rem] w-px bg-border"
-            />
-            {items.map((p, i) => (
-              <li
-                key={i}
-                className="relative grid grid-cols-[1.5rem_1fr] gap-4 border-b border-border py-5 first:pt-1"
-              >
-                <span className="relative flex justify-center pt-1.5">
-                  <span
-                    aria-hidden
-                    className="flex h-[13px] w-[13px] items-center justify-center rounded-full border border-border bg-surface"
-                  >
-                    <span className="h-[5px] w-[5px] rounded-full bg-text-primary" />
-                  </span>
-                </span>
-                <div className="flex flex-col gap-1.5">
-                  <div className="flex items-baseline gap-2.5">
-                    <span className={`tabular-nums text-text-faint ${type.caption}`}>
-                      {pad(i + 1)}
-                    </span>
-                    <h3 className="text-base font-medium leading-5 tracking-[-0.2px] text-text-primary md:text-lg">
-                      {p.title}
-                    </h3>
-                  </div>
-                  <p className={`text-text-secondary ${type.bodySmall}`}>{p.body}</p>
-                </div>
-              </li>
-            ))}
-            <li className="grid grid-cols-[1.5rem_1fr] gap-4 pt-5">
-              <span className="flex justify-center">
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" aria-hidden className="text-text-faint">
-                  <path
-                    d="M4 12a8 8 0 1 0 2.3-5.6M4 4v3.2h3.2"
-                    stroke="currentColor"
-                    strokeWidth="1.5"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                  />
-                </svg>
-              </span>
-              <span className={`uppercase tracking-[0.4px] text-text-faint ${type.caption}`}>
-                Continuous — Sustain feeds back into Shape
-              </span>
-            </li>
-          </ol>
-        </Panel>
+        <SystemCycle phases={items} />
       </Reveal>
     </div>
   )
