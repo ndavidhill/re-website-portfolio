@@ -112,7 +112,7 @@ export function SystemCycle({phases}: {phases: Phase[]}) {
               onFocus={() => setActive(i)}
               onClick={() => setActive(i)}
               aria-pressed={isActive}
-              className={`absolute -translate-x-1/2 -translate-y-1/2 rounded-full px-3 py-1.5 text-sm font-medium leading-none tracking-[-0.2px] outline-none transition-colors duration-300 ${EASE} focus-visible:ring-1 focus-visible:ring-border ${
+              className={`absolute -translate-x-1/2 -translate-y-1/2 whitespace-nowrap rounded-full px-3 py-1.5 text-sm font-medium leading-none tracking-[-0.2px] outline-none transition-colors duration-300 ${EASE} focus-visible:ring-1 focus-visible:ring-border ${
                 isActive
                   ? 'bg-text-primary text-canvas'
                   : 'bg-surface text-text-secondary hover:text-text-primary'

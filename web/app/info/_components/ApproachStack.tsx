@@ -231,7 +231,7 @@ function MarketContent({
       ? types.map((t) => ({title: t.title ?? '', body: t.body ?? ''}))
       : MARKET_TYPES
   return (
-    <div className="flex flex-col gap-6">
+    <div className="flex flex-col gap-3">
       <Reveal>
         <p className={`max-w-[460px] text-text-secondary ${type.bodyLarge}`}>
           {intro || MARKET_INTRO}
@@ -269,8 +269,8 @@ function MarketContent({
         ))}
       </ul>
       <Reveal delay={0.08}>
-        <div className="rounded-[12px] bg-text-primary px-6 py-10 md:px-8 md:py-12">
-          <p className={`max-w-[520px] text-canvas [text-wrap:balance] ${type.h2Large}`}>
+        <div className="rounded-[12px] bg-text-primary px-6 py-10 md:px-6 md:py-8">
+          <p className={`max-w-[520px] text-canvas [text-wrap:balance] ${type.h2}`}>
             {punchline || MARKET_PUNCHLINE}
           </p>
         </div>
