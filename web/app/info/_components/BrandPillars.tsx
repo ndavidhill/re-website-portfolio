@@ -12,36 +12,38 @@ interface Props {
   intro?: string
   defaultImage?: SanityImage
   pillars: BrandPillar[]
-  /** Deck slide 4 framing: a conviction lead-in above the pillars, and two
-   *  closing bands (collaborators, connected experiences & codes) below. */
+  /** Deck slide 4 framing. Conviction leads the list (01); collaborators and
+   *  connected codes close it (07/08). All carry "Label — statement" copy. */
   conviction?: string
   collaborators?: string
   codes?: string
 }
 
 const EASE = 'ease-[cubic-bezier(0.16,1,0.3,1)]'
+const pad = (n: number) => String(n).padStart(2, '0')
 
-/** Split "Label — statement" framework copy into an eyebrow + body. */
-function splitBand(s: string): {label: string; body: string} {
+/** Split "Label — statement" framework copy into {title, body}. */
+function splitBand(s: string, fallbackTitle: string): {title: string; body: string} {
   const parts = s.split(/\s+—\s+/)
   return parts.length > 1
-    ? {label: parts[0], body: parts.slice(1).join(' — ')}
-    : {label: '', body: s}
+    ? {title: parts[0], body: parts.slice(1).join(' — ')}
+    : {title: fallbackTitle, body: s}
+}
+
+interface Row {
+  key: string
+  title: string
+  body: string
+  image?: SanityImage
 }
 
 /**
- * Brand pillars — an indexed, hairline-divided list paired with a cross-fading
- * media panel. The five points read as one system (numbered 01–N, divided by
- * thin rules) rather than separate cards; all bodies stay visible so the viewer
- * can absorb every point at a glance.
- *
- * Hover / focus / tap a row to make it active: a left accent bar draws in, the
- * row indents, its index brightens and an arrow reveals, while the matching
- * image cross-fades (with a slow scale settle) into the panel. The active state
- * persists on leave — calmer and more deliberate than snapping back to a
- * default — and is mirrored by a small caption on the media.
- *
- * Each pillar supplies its own image; `defaultImage` is a per-pillar fallback.
+ * The framework as one indexed, hairline-divided list (01–08): Conviction leads,
+ * the five C's sit within, Collaborators and Connected codes close it. The five
+ * C's each carry an image that cross-fades into the sticky media panel on
+ * hover/focus; the framing rows (Conviction / Collaborators / Codes) have no
+ * image of their own, so they fall back to the default image. The active state
+ * persists on leave and is mirrored by a caption on the media.
  */
 export function BrandPillars({
   heading,
@@ -53,11 +55,32 @@ export function BrandPillars({
   codes,
 }: Props) {
   const [activeIdx, setActiveIdx] = useState(0)
-  const bands = [collaborators, codes].filter(Boolean) as string[]
 
-  const total = pillars.length
-  const pad = (n: number) => String(n).padStart(2, '0')
-  const active = pillars[activeIdx]
+  const rows: Row[] = [
+    ...(conviction ? [{key: 'conviction', ...splitBand(conviction, 'Conviction')}] : []),
+    ...pillars.map((p) => ({key: p._key, title: p.title, body: p.body, image: p.image})),
+    ...(collaborators
+      ? [{key: 'collaborators', ...splitBand(collaborators, 'Collaborators')}]
+      : []),
+    ...(codes
+      ? [{key: 'codes', ...splitBand(codes, 'Connected experiences & codes')}]
+      : []),
+  ]
+
+  const total = rows.length
+  const activeRow = rows[activeIdx]
+  // Framing rows have no image — show the default image for those.
+  const activeImageKey = activeRow?.image ? activeRow.key : 'default'
+
+  // Image layers to cross-fade between: a fallback (for the framing rows that
+  // have no image of their own) + each row that has one. Fallback prefers the
+  // authored default image, else the first pillar image.
+  const fallbackImage = defaultImage ?? pillars.find((p) => p.image)?.image
+  const layers: Array<{key: string; image: SanityImage}> = []
+  if (fallbackImage) layers.push({key: 'default', image: fallbackImage})
+  rows.forEach((r) => {
+    if (r.image) layers.push({key: r.key, image: r.image})
+  })
 
   return (
     <section className="flex flex-col gap-10 md:gap-[60px]">
@@ -67,45 +90,25 @@ export function BrandPillars({
           as="h2"
           className={`max-w-[800px] text-text-primary ${type.h1}`}
         />
-        {conviction &&
-          (() => {
-            const {label, body} = splitBand(conviction)
-            return (
-              <Reveal delay={0.08} className="mt-6 max-w-[640px]">
-                {label && (
-                  <span
-                    className={`block uppercase tracking-[0.4px] text-text-faint ${type.caption}`}
-                  >
-                    {label}
-                  </span>
-                )}
-                <p className={`text-text-secondary ${type.body} ${label ? 'mt-2' : ''}`}>
-                  {body}
-                </p>
-              </Reveal>
-            )
-          })()}
       </div>
 
       <div className="grid grid-cols-1 gap-10 md:grid-cols-2 md:gap-[60px]">
         {/* Left — cross-fading media panel */}
         <Reveal className="md:order-first md:sticky md:top-[120px] md:self-start">
           <div className="relative aspect-square w-full overflow-hidden rounded-[4px] bg-surface md:rounded-[8px]">
-            {pillars.map((p, i) => {
-              const image = p.image ?? defaultImage
-              if (!image) return null
-              const isActive = i === activeIdx
+            {layers.map((layer, i) => {
+              const isActive = layer.key === activeImageKey
               return (
                 <div
-                  key={p._key}
+                  key={layer.key}
                   aria-hidden={!isActive}
                   className={`absolute inset-0 transition-opacity duration-700 ${EASE} ${
                     isActive ? 'opacity-100' : 'opacity-0'
                   }`}
                 >
                   <Image
-                    src={urlForImage(image).width(1400).auto('format').url()}
-                    alt={image.alt ?? ''}
+                    src={urlForImage(layer.image).width(1400).auto('format').url()}
+                    alt={layer.image.alt ?? ''}
                     fill
                     sizes="(min-width: 768px) 45vw, 100vw"
                     className={`object-cover transition-transform duration-[1200ms] ${EASE} ${
@@ -123,7 +126,7 @@ export function BrandPillars({
                 {pad(activeIdx + 1)} / {pad(total)}
               </span>
               <span className="text-right text-[15px] font-medium tracking-[-0.2px] text-white">
-                {active?.title}
+                {activeRow?.title}
               </span>
             </div>
           </div>
@@ -141,17 +144,17 @@ export function BrandPillars({
 
           <Reveal delay={0.12}>
             <ul className="flex flex-col border-t border-border" role="list">
-              {pillars.map((p, i) => {
+              {rows.map((r, i) => {
                 const isActive = i === activeIdx
                 return (
-                  <li key={p._key} className="border-b border-border">
+                  <li key={r.key} className="border-b border-border">
                     <button
                       type="button"
                       onMouseEnter={() => setActiveIdx(i)}
                       onFocus={() => setActiveIdx(i)}
                       onClick={() => setActiveIdx(i)}
                       aria-pressed={isActive}
-                      className="group relative block w-full py-5 text-left outline-none"
+                      className="group relative block w-full py-4 text-left outline-none md:py-[18px]"
                     >
                       {/* Accent bar — draws in vertically when active */}
                       <span
@@ -177,7 +180,7 @@ export function BrandPillars({
                         <div className="flex min-w-0 flex-1 flex-col gap-1.5">
                           <div className="flex items-center justify-between gap-3">
                             <h3 className="text-[15px] font-medium leading-5 tracking-[-0.2px] text-text-primary md:text-base">
-                              {p.title}
+                              {r.title}
                             </h3>
                             <span
                               aria-hidden
@@ -203,7 +206,7 @@ export function BrandPillars({
                               isActive ? 'text-text-primary' : 'text-text-secondary'
                             }`}
                           >
-                            {p.body}
+                            {r.body}
                           </p>
                         </div>
                       </div>
@@ -215,31 +218,6 @@ export function BrandPillars({
           </Reveal>
         </div>
       </div>
-
-      {/* Closing framework bands — collaborators + connected experiences & codes
-          (deck slide 4). The 5 C's are held within these. */}
-      {bands.length > 0 && (
-        <div className="flex flex-col">
-          {bands.map((b, i) => {
-            const {label, body} = splitBand(b)
-            return (
-              <Reveal
-                as="div"
-                key={i}
-                delay={0.06 + i * 0.06}
-                className="grid grid-cols-1 gap-x-[60px] gap-y-2 border-t border-border py-5 md:grid-cols-[minmax(0,200px)_1fr]"
-              >
-                <span
-                  className={`uppercase tracking-[0.4px] text-text-faint ${type.caption}`}
-                >
-                  {label || 'Also'}
-                </span>
-                <p className={`max-w-[760px] text-text-secondary ${type.body}`}>{body}</p>
-              </Reveal>
-            )
-          })}
-        </div>
-      )}
     </section>
   )
 }
