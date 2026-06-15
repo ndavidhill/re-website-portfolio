@@ -111,13 +111,20 @@ function MediaBlockView({
     )
   }
 
+  // Full bleed: render at full width, height proportional to the upload (its
+  // intrinsic aspect ratio — no crop). Contained: a fixed frame the image fills
+  // (cover). Falls back to 16/9 if the asset's dimensions aren't available.
+  const isFull = block.layout === 'full'
+  const first = items[0]
+  const naturalAspect = !isPairVideo(first)
+    ? first.asset?.metadata?.dimensions?.aspectRatio
+    : undefined
+
   return (
     <figure className="relative w-full">
       <div
-        className={
-          `relative w-full ${FRAME_FX} ` +
-          (block.layout === 'full' ? 'aspect-[16/9]' : 'aspect-[1320/851]')
-        }
+        className={`relative w-full ${FRAME_FX}${isFull ? '' : ' aspect-[1320/851]'}`}
+        style={isFull ? {aspectRatio: naturalAspect ?? 16 / 9} : undefined}
       >
         <MediaSlot item={items[0]} width={2000} sizes="100vw" priority={priority} />
       </div>
