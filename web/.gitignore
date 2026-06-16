@@ -37,6 +37,9 @@ yarn-error.log*
 # vercel
 .vercel
 
+# claude inspector (dev-only element picker)
+.claude/selection.json
+
 # typescript
 *.tsbuildinfo
 next-env.d.ts
