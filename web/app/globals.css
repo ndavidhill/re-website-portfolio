@@ -156,6 +156,43 @@ html.theme-anim :is(.tt-moon, .tt-shadow) {
   }
 }
 
+/* System machine (/info) — the active phase's cog lifts, brightens and spins;
+   the others sit back. The focus travels cog→cog as the phase auto-advances,
+   so the machine reads as alive. Nested groups: outer scales/dims, inner spins
+   (so the two transforms don't fight). */
+.mc-cog {
+  transform-box: fill-box;
+  transform-origin: center;
+  opacity: 0.5;
+  transition:
+    transform 0.55s cubic-bezier(0.16, 1, 0.3, 1),
+    opacity 0.55s ease;
+}
+.mc-cog-active {
+  opacity: 1;
+  transform: scale(1.2);
+}
+.mc-cog-spin {
+  transform-box: fill-box;
+  transform-origin: center;
+}
+.mc-cog-active .mc-cog-spin {
+  animation: mc-spin 3s linear infinite;
+}
+@keyframes mc-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .mc-cog {
+    transition: none;
+  }
+  .mc-cog-active .mc-cog-spin {
+    animation: none;
+  }
+}
+
 /* Infinite Layers Grid (/play) — caption mask reveal as a tile enters view.
    The inner span sits below its clip until the tile is .lg-visible. */
 .lg-caption {

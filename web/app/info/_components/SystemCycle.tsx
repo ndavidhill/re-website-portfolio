@@ -4,6 +4,7 @@ import {useEffect, useState} from 'react'
 import {useReducedMotion} from 'framer-motion'
 import {type} from '@/lib/design'
 import {Panel} from './InfoBits'
+import {SystemMachineGraphic} from './SystemMachineGraphic'
 
 interface Phase {
   title: string
@@ -12,30 +13,23 @@ interface Phase {
 }
 
 const pad = (n: number) => String(n).padStart(2, '0')
-const EASE = 'cubic-bezier(0.16,1,0.3,1)'
-const R = 150
-const C = 2 * Math.PI * R
 const ADVANCE_MS = 3000
 
-// Bullet positions around the ring (top → right → bottom → left = the
-// clockwise Shape → System → Scale → Sustain order) as % of the square box,
-// and the rotation that places the highlighted quarter-arc's start at each node.
-const NODES = [
-  {left: '50%', top: '15.9%', anchor: 'top'},
-  {left: '84.1%', top: '50%', anchor: 'right'},
-  {left: '50%', top: '84.1%', anchor: 'bottom'},
-  {left: '15.9%', top: '50%', anchor: 'left'},
+// Hit-area positions over each phase cog, as % of the 498×486 illustration,
+// in phase order: Shape, System, Scale, Sustain.
+const COG_POS = [
+  {left: '45%', top: '37.2%'},
+  {left: '66.5%', top: '51.6%'},
+  {left: '54.6%', top: '67.9%'},
+  {left: '34.7%', top: '80.9%'},
 ] as const
-const ARC_ROTATION = [-90, 0, 90, 180]
 
 /**
- * The brand system as a cyclical orbit (inspired by localremote's process loop,
- * grounded in the deck's "Brand System" ring). Four phase pills sit around a
- * ring with the hub at centre; a highlighted quarter-arc sweeps clockwise from
- * the active phase toward the next, so the loop reads as continuous — each phase
- * feeding the next. It auto-advances, and pauses so you can scrub by
- * hovering/focusing a phase; the active phase's detail shows beneath. Sized to
- * sit in the 50/50 right column.
+ * The brand system drawn as a pulley machine in the studio house. Each phase
+ * maps to a pulley; the active one lifts, brightens and spins (see globals.css),
+ * and the focus travels cog→cog as the phase auto-advances — so the machine
+ * reads as alive. It pauses so you can scrub by hovering/focusing a cog; the
+ * active phase's detail shows beneath. Sized to sit in the 50/50 right column.
  */
 export function SystemCycle({phases}: {phases: Phase[]}) {
   const reduce = useReducedMotion()
@@ -59,71 +53,30 @@ export function SystemCycle({phases}: {phases: Phase[]}) {
   return (
     <Panel className="flex flex-col gap-6">
       <div
-        className="relative mx-auto aspect-square w-full max-w-[420px]"
+        className="relative mx-auto aspect-[498/486] w-full max-w-[460px]"
         onPointerEnter={() => setPaused(true)}
         onPointerLeave={() => setPaused(false)}
         onFocusCapture={() => setPaused(true)}
         onBlurCapture={() => setPaused(false)}
       >
-        <svg
-          viewBox="0 0 440 440"
+        <SystemMachineGraphic
+          active={active}
           className="absolute inset-0 h-full w-full"
-          aria-hidden
-        >
-          {/* Base ring */}
-          <circle cx="220" cy="220" r={R} fill="none" stroke="var(--color-border)" strokeWidth="1" />
-          {/* Highlighted quarter-arc — sweeps clockwise to the next phase */}
-          <circle
-            cx="220"
-            cy="220"
-            r={R}
-            fill="none"
-            stroke="var(--color-text-primary)"
-            strokeWidth="2"
-            strokeLinecap="round"
-            strokeDasharray={`${C / 4} ${C}`}
-            style={{
-              transformOrigin: 'center',
-              transform: `rotate(${ARC_ROTATION[active] ?? 0}deg)`,
-              transition: reduce ? 'none' : `transform 700ms ${EASE}`,
-            }}
+        />
+        {/* Transparent hit areas over each phase cog (interaction + a11y). */}
+        {phases.slice(0, n).map((p, i) => (
+          <button
+            key={i}
+            type="button"
+            onMouseEnter={() => setActive(i)}
+            onFocus={() => setActive(i)}
+            onClick={() => setActive(i)}
+            aria-pressed={i === active}
+            aria-label={`${pad(i + 1)} ${p.title}`}
+            className="absolute h-12 w-12 -translate-x-1/2 -translate-y-1/2 cursor-pointer rounded-full outline-none focus-visible:ring-2 focus-visible:ring-text-primary/40"
+            style={{left: COG_POS[i].left, top: COG_POS[i].top}}
           />
-        </svg>
-
-        {/* Hub */}
-        <span className="pointer-events-none absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 text-center">
-          <span className={`block uppercase tracking-[0.4px] text-text-faint ${type.caption}`}>
-            Brand
-          </span>
-          <span className={`block uppercase tracking-[0.4px] text-text-faint ${type.caption}`}>
-            system
-          </span>
-        </span>
-
-        {/* Phase nodes */}
-        {phases.slice(0, n).map((p, i) => {
-          const node = NODES[i]
-          const isActive = i === active
-          return (
-            <button
-              key={i}
-              type="button"
-              onMouseEnter={() => setActive(i)}
-              onFocus={() => setActive(i)}
-              onClick={() => setActive(i)}
-              aria-pressed={isActive}
-              className={`absolute -translate-x-1/2 -translate-y-1/2 whitespace-nowrap rounded-full px-3 py-1.5 text-sm font-medium leading-none tracking-[-0.2px] outline-none transition-colors duration-300 ${EASE} focus-visible:ring-1 focus-visible:ring-border ${
-                isActive
-                  ? 'bg-text-primary text-canvas'
-                  : 'bg-surface text-text-secondary hover:text-text-primary'
-              }`}
-              style={{left: node.left, top: node.top}}
-            >
-              <span className="tabular-nums opacity-50">{pad(i + 1)}</span>{' '}
-              {p.title}
-            </button>
-          )
-        })}
+        ))}
       </div>
 
       {/* Active phase detail — contrast container (canvas card on the surface
