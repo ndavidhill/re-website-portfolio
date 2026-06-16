@@ -76,10 +76,28 @@ export default async function HomePage() {
       {/* pb clears the docked StickyHomeVideo (fixed bottom-right, ~191px tall +
           24px margin) so the footer/addresses aren't hidden beneath it. */}
       <div className="flex flex-col gap-24 px-3 pb-[240px] md:gap-60 md:px-[30px]">
-        {/* Intro paragraph */}
+        {/* Intro paragraph — full-bleed, left-aligned, fluid type that scales
+            smoothly with the viewport (clamped 30px → 72px). */}
         <Reveal>
-          <p className={`mx-auto max-w-[1320px] text-text-primary [text-wrap:balance] ${type.h2Large}`}>
-            {home.introParagraph}
+          <p className="w-full text-left text-text-primary [text-wrap:pretty] font-medium text-[clamp(1.875rem,4.5vw,4.5rem)] leading-[1.05] tracking-[-0.02em]">
+            {(() => {
+              // Render the CMS copy line by line; the final author-defined line
+              // is muted. Add a line break in the Studio "Intro paragraph" field
+              // to choose where the faint last line begins.
+              const lines = home.introParagraph
+                .split('\n')
+                .map((l) => l.trim())
+                .filter(Boolean)
+              return lines.map((line, i) => {
+                const isLast = i === lines.length - 1 && lines.length > 1
+                return (
+                  <span key={i} className={isLast ? 'text-text-faint' : undefined}>
+                    {i > 0 && <br />}
+                    {line}
+                  </span>
+                )
+              })
+            })()}
           </p>
         </Reveal>
 
