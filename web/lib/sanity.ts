@@ -66,6 +66,8 @@ export interface SanityImage {
     }
   }
   alt?: string
+  /** Gallery cell shape, e.g. "1/1", "4/5". Only set on gallery images. */
+  aspectRatio?: string
   hotspot?: {x: number; y: number; height: number; width: number}
   crop?: {top: number; bottom: number; left: number; right: number}
 }

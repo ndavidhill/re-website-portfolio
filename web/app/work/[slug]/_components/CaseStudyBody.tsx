@@ -214,14 +214,23 @@ function GalleryBlockView({
       : columns === 4
       ? 'grid-cols-2 md:grid-cols-4'
       : 'grid-cols-2 md:grid-cols-3'
+  const count = block.images.length
+  const oddLast = count % 2 === 1
   return (
     <div className={`grid w-full gap-4 ${gridCls}`}>
       {block.images.map((img, i) => {
         const src = imgSrc(img, 900)
+        // Per-image cell shape (editable in Studio); defaults to square.
+        const ratio = parseRatio(img.aspectRatio) ?? '1 / 1'
+        // On the 2-up mobile grid a lone final image would leave a gap, so let
+        // it span the full width; reverts to a single cell at md+.
+        const spanCls =
+          oddLast && i === count - 1 ? 'col-span-2 md:col-span-1' : ''
         return (
           <div
             key={i}
-            className="relative aspect-square overflow-hidden rounded-[4px] md:rounded-[16px]"
+            className={`relative overflow-hidden rounded-[4px] md:rounded-[16px] ${spanCls}`}
+            style={{aspectRatio: ratio}}
           >
             <Image
               src={src}
