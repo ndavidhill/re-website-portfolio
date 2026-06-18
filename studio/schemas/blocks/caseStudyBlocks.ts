@@ -228,7 +228,27 @@ export const galleryBlock = defineType({
         {
           type: 'image',
           options: {hotspot: true},
-          fields: [{name: 'alt', type: 'string', title: 'Alt text'}],
+          fields: [
+            {name: 'alt', type: 'string', title: 'Alt text'},
+            {
+              name: 'aspectRatio',
+              type: 'string',
+              title: 'Aspect ratio',
+              description:
+                'Cell shape for this image. Defaults to square. On mobile the grid is 2-up; a lone final image spans full width.',
+              options: {
+                list: [
+                  {title: 'Square (1:1)', value: '1/1'},
+                  {title: 'Portrait (4:5)', value: '4/5'},
+                  {title: 'Tall (3:4)', value: '3/4'},
+                  {title: 'Landscape (4:3)', value: '4/3'},
+                  {title: 'Wide (16:9)', value: '16/9'},
+                  {title: 'Tall portrait (9:16)', value: '9/16'},
+                ],
+              },
+              initialValue: '1/1',
+            },
+          ],
         },
       ],
       validation: (Rule) => Rule.min(2),
