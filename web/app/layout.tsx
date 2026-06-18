@@ -70,6 +70,10 @@ export default function RootLayout({
         />
         {/* Color tokens emitted from lib/design.ts — edit there. */}
         <style dangerouslySetInnerHTML={{__html: designVariablesCss()}} />
+        {/* Claude Inspector — dev only, never emitted in production builds. */}
+        {process.env.NODE_ENV !== 'production' && (
+          <script src="/claude-inspector.js" defer />
+        )}
       </head>
       <body className="min-h-full flex flex-col bg-canvas text-text-primary font-sans">
         <PageTransition>{children}</PageTransition>

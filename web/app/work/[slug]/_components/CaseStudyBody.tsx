@@ -245,13 +245,15 @@ function QuoteBlockView({
   block: Extract<CaseStudyBlock, {_type: 'quoteBlock'}>
 }) {
   if (!block.quote) return null
+  // Compact surface card matching the Accordion rows (rounded-md bg-surface,
+  // 14px copy), constrained to a single column rather than full-bleed.
   return (
-    <blockquote className="border-t border-border pt-8">
-      <p className="text-[28px] font-medium leading-[32px] tracking-[-0.4px] md:text-[40px] md:leading-[44px] md:tracking-[-0.6px] text-text-primary">
+    <blockquote className="max-w-[550px] rounded-md bg-surface p-3.5">
+      <p className="text-[14px] font-medium leading-5 tracking-[-0.084px] text-text-primary">
         “{block.quote}”
       </p>
       {(block.attribution || block.role) && (
-        <footer className="mt-6 text-base leading-5 tracking-[-0.176px] text-text-secondary">
+        <footer className="mt-2.5 text-[14px] leading-5 tracking-[-0.084px] text-text-secondary">
           {block.attribution}
           {block.attribution && block.role && ' · '}
           {block.role}

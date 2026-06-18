@@ -36,10 +36,11 @@ export function SystemCycle({phases}: {phases: Phase[]}) {
   const n = Math.min(phases.length, 4)
   const [active, setActive] = useState(0)
   const [paused, setPaused] = useState(false)
-  // Keyed to the active index so the detail auto-collapses when the phase
-  // changes (no effect / cascading setState needed).
-  const [expandedIdx, setExpandedIdx] = useState(-1)
-  const expanded = expandedIdx === active
+  // Sticky "show details" mode: once the user expands a phase's detail, the
+  // drawer stays open for every phase as the cycle continues — they've signalled
+  // they want the deeper copy. Toggling collapse turns it back off.
+  const [detailsOpen, setDetailsOpen] = useState(false)
+  const expanded = detailsOpen
 
   useEffect(() => {
     if (reduce || paused || n < 2) return
@@ -117,7 +118,7 @@ export function SystemCycle({phases}: {phases: Phase[]}) {
           {activePhase?.detail && (
             <button
               type="button"
-              onClick={() => setExpandedIdx(expanded ? -1 : active)}
+              onClick={() => setDetailsOpen((o) => !o)}
               aria-expanded={expanded}
               className={`inline-flex items-center gap-1.5 uppercase tracking-[0.4px] text-text-primary outline-none transition-colors hover:text-text-secondary focus-visible:text-text-secondary ${type.caption}`}
             >
