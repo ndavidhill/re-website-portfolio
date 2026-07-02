@@ -156,28 +156,19 @@ html.theme-anim :is(.tt-moon, .tt-shadow) {
   }
 }
 
-/* System machine (/info) — the active phase's cog lifts, brightens and spins;
-   the others sit back. The focus travels cog→cog as the phase auto-advances,
-   so the machine reads as alive. Nested groups: outer scales/dims, inner spins
-   (so the two transforms don't fight). */
-.mc-cog {
-  transform-box: fill-box;
-  transform-origin: center;
-  opacity: 0.5;
-  transition:
-    transform 0.55s cubic-bezier(0.16, 1, 0.3, 1),
-    opacity 0.55s ease;
+/* System machine (/info) — the active phase's cog takes the mint highlight
+   (colour only, no scaling) and its screw hub spins; the outer ring holds
+   still. The focus travels cog→cog as the phase auto-advances, so the machine
+   reads as alive. Hover/focus scrub via the overlay buttons in SystemCycle. */
+.mc-fill {
+  transition: fill 0.45s ease;
 }
-.mc-cog-active {
-  opacity: 1;
-  transform: scale(1.2);
-}
-.mc-cog-spin {
+.mc-hub {
   transform-box: fill-box;
   transform-origin: center;
 }
-.mc-cog-active .mc-cog-spin {
-  animation: mc-spin 3s linear infinite;
+.mc-cog-active .mc-hub {
+  animation: mc-spin 2.6s linear infinite;
 }
 @keyframes mc-spin {
   to {
@@ -185,10 +176,10 @@ html.theme-anim :is(.tt-moon, .tt-shadow) {
   }
 }
 @media (prefers-reduced-motion: reduce) {
-  .mc-cog {
+  .mc-fill {
     transition: none;
   }
-  .mc-cog-active .mc-cog-spin {
+  .mc-cog-active .mc-hub {
     animation: none;
   }
 }

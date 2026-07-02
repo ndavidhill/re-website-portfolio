@@ -15,13 +15,14 @@ interface Phase {
 const pad = (n: number) => String(n).padStart(2, '0')
 const ADVANCE_MS = 3000
 
-// Hit-area positions over each phase cog, as % of the 498×486 illustration,
-// in phase order: Shape, System, Scale, Sustain.
+// Hit-area positions over each phase cog, as % of the 596×606 illustration,
+// in phase order: Shape (top), System (right), Scale (bottom-left),
+// Sustain (left).
 const COG_POS = [
-  {left: '45%', top: '37.2%'},
-  {left: '66.5%', top: '51.6%'},
-  {left: '54.6%', top: '67.9%'},
-  {left: '34.7%', top: '80.9%'},
+  {left: '49.6%', top: '43%'},
+  {left: '53.7%', top: '59.1%'},
+  {left: '34.2%', top: '70.3%'},
+  {left: '37.3%', top: '54.9%'},
 ] as const
 
 /**
@@ -54,7 +55,7 @@ export function SystemCycle({phases}: {phases: Phase[]}) {
   return (
     <Panel className="flex flex-col gap-6">
       <div
-        className="relative mx-auto aspect-[498/486] w-full max-w-[460px]"
+        className="relative mx-auto aspect-[596/606] w-full max-w-[460px]"
         onPointerEnter={() => setPaused(true)}
         onPointerLeave={() => setPaused(false)}
         onFocusCapture={() => setPaused(true)}
