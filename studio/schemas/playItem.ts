@@ -60,6 +60,14 @@ export default defineType({
       initialValue: '4/5',
     }),
     defineField({
+      name: 'lightbox',
+      title: 'Enable lightbox',
+      type: 'boolean',
+      initialValue: false,
+      description:
+        'When on, tapping this tile in the gallery opens it full-screen in a lightbox.',
+    }),
+    defineField({
       name: 'image',
       title: 'Image',
       type: 'image',

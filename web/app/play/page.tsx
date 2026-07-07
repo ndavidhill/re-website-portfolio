@@ -43,6 +43,7 @@ function toLayerItem(item: PlayItem, color: string): LayerItem {
     image: item.image,
     videoUrl: item.videoFile?.asset?.url,
     poster: item.poster,
+    lightbox: item.lightbox,
   }
 }
 

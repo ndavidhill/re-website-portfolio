@@ -393,6 +393,8 @@ export interface PlayItem {
   row: 1 | 2
   order?: number
   aspectRatio: '4/5' | '1/1' | '16/9'
+  /** Tapping the tile opens the item full-screen in a lightbox. */
+  lightbox?: boolean
   image?: SanityImage
   videoFile?: {asset?: {url?: string; mimeType?: string}}
   poster?: SanityImage
@@ -600,6 +602,7 @@ export const playItemsQuery = groq`
     row,
     order,
     aspectRatio,
+    lightbox,
     image{..., asset->},
     videoFile{asset->{url, mimeType}},
     poster{..., asset->}

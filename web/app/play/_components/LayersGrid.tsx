@@ -4,6 +4,7 @@ import {useEffect, useRef, useState} from 'react'
 import {gsap} from 'gsap'
 import {useReducedMotion} from 'framer-motion'
 import {urlForImage, type SanityImage} from '@/lib/sanity'
+import {PlayLightbox} from './PlayLightbox'
 
 export interface LayerItem {
   caption: string
@@ -12,15 +13,18 @@ export interface LayerItem {
   image?: SanityImage
   videoUrl?: string
   poster?: SanityImage
+  /** Tapping the tile opens the item full-screen in a lightbox. */
+  lightbox?: boolean
 }
 
 // ──────────────────────────────────────────────────────────────────────────────
 // Motion model — ported from Jorge Toloza's "Infinite Layers Grid" (Codrops),
-// adapted to React + Sanity media. Original: DOM tiles translated each frame
-// over a lerp-smoothed 2D scroll; per-tile random `ease` gives the layered
-// parallax depth; the strip is tiled and wrapped by ±pattern size for the
-// infinite illusion. We generalise the reference's fixed 2×2 tiling to cover
-// any viewport (it otherwise leaves gaps on tall / mobile screens).
+// adapted to React + Sanity media. DOM tiles are translated each frame over a
+// lerp-smoothed 2D scroll; per-tile random `ease` gives the layered parallax
+// depth; the strip is tiled and wrapped by ±pattern size for the infinite
+// illusion. On top of the reference: flick momentum on release, an idle-sleep
+// for the render loop, decoder-deduped video playback, lazy media, and
+// tap-to-open lightbox tiles.
 // ──────────────────────────────────────────────────────────────────────────────
 
 const SCROLL_EASE = 0.06
@@ -31,6 +35,15 @@ const DRIFT_GAIN = 5 // scroll-velocity push multiplier
 const MOUSE_PARALLAX = 0.6 // cursor parallax as a fraction of tile size
 const IMG_OVERSCALE = 1.2 // base image zoom so inner parallax never shows edges
 const PRESS_ZOOM = 0.2 // extra zoom while dragging
+
+/** Seconds of release velocity projected into the target on a flick. */
+const FLICK_PROJECT = 0.22
+/** Max projected flick distance (px) so a violent swipe can't launch to nowhere. */
+const FLICK_MAX = 1400
+/** Pointer travel (px) beyond which a gesture is a drag, not a tap. */
+const TAP_SLOP = 6
+/** Settled frames before the render loop goes to sleep. */
+const SLEEP_AFTER_FRAMES = 45
 
 const ASPECT: Record<LayerItem['ratio'], number> = {'4/5': 0.8, '1/1': 1, '16/9': 16 / 9}
 
@@ -77,9 +90,6 @@ interface Props {
  *  - Item→cell assignment is randomised but constrained so no cell shares its
  *    media with the cell to its left or above. That breaks the columnar
  *    stacking you get when the column count divides the item count.
- *
- * Large per-tile jitter + size variance keep the resting layout from reading as
- * a grid.
  */
 function buildBase(items: LayerItem[]): BaseTile[] {
   const n = items.length
@@ -95,8 +105,7 @@ function buildBase(items: LayerItem[]): BaseTile[] {
 
   // Assign media to cells from a *balanced* bag (every item used an equal number
   // of times), deterministically shuffled, then repaired so no cell shares its
-  // media with any 4-neighbour. Balanced + de-clustered ⇒ repeats read as spread
-  // out rather than stacked.
+  // media with any 4-neighbour.
   const assign: number[] = Array.from({length: cells}, (_, k) => k % n)
   for (let k = cells - 1; k > 0; k--) {
     const j = Math.floor(rnd(k * 13 + 555) * (k + 1))
@@ -135,8 +144,6 @@ function buildBase(items: LayerItem[]): BaseTile[] {
     for (let col = 0; col < cols; col++) {
       const item = items[assign[i]]
       const ar = ASPECT[item.ratio]
-      // Varied size; cap width so wide tiles don't dominate their cell. The
-      // larger minimum lets neighbours overlap, covering jitter gaps.
       let h = cellH * (0.62 + rnd(i + 1) * 0.4) // 0.62–1.02 of the cell
       let w = h * ar
       const maxW = cellW * 1.1
@@ -154,20 +161,32 @@ function buildBase(items: LayerItem[]): BaseTile[] {
   return out
 }
 
+interface RenderTile {
+  key: string
+  item: LayerItem
+  w: number
+  h: number
+  /** In the initial viewport → load media immediately; others load lazily. */
+  eager: boolean
+}
+
 export function LayersGrid({items}: Props) {
   const reduce = useReducedMotion()
   const containerRef = useRef<HTMLDivElement>(null)
 
   // Rendered tiles (computed client-side from viewport + content).
-  const [tiles, setTiles] = useState<
-    Array<{key: string; item: LayerItem; w: number; h: number}>
-  >([])
+  const [tiles, setTiles] = useState<RenderTile[]>([])
+  // Origin element is captured at open time (refs must not be read in render).
+  const [lightbox, setLightbox] = useState<{idx: number; el: HTMLElement | null} | null>(
+    null,
+  )
 
   // Per-tile physics + element refs, aligned by index with `tiles`.
   const physRef = useRef<PhysTile[]>([])
   const elRef = useRef<Array<HTMLDivElement | null>>([])
   const wrapRef = useRef<Array<HTMLDivElement | null>>([])
   const imgRef = useRef<Array<HTMLElement | null>>([])
+  const frameRef = useRef<Array<HTMLDivElement | null>>([])
 
   // Interaction state (mutable across frames).
   const stateRef = useRef({
@@ -178,11 +197,19 @@ export function LayersGrid({items}: Props) {
       delta: {cx: 0, cy: 0},
     },
     mouse: {tx: 0.5, ty: 0.5, cx: 0.5, cy: 0.5, pressT: 0, pressC: 0},
-    drag: {active: false, startX: 0, startY: 0, scrollX: 0, scrollY: 0},
+    drag: {active: false, startX: 0, startY: 0, scrollX: 0, scrollY: 0, moved: false},
     wrapX: 0,
     wrapY: 0,
+    built: false,
   })
   const introDone = useRef(false)
+  // Loop controls exposed to React (lightbox freeze/thaw). Assigned per effect run.
+  const controlsRef = useRef<{wake: () => void; freeze: () => void; thaw: () => void}>({
+    wake: () => {},
+    freeze: () => {},
+    thaw: () => {},
+  })
+  const frozenRef = useRef(false)
 
   // ── Layout: (re)build tiles from viewport size + content ──────────────────
   useEffect(() => {
@@ -195,55 +222,67 @@ export function LayersGrid({items}: Props) {
       const winW = window.innerWidth
       const winH = window.innerHeight
       // Uniform scale keyed to the dominant axis so ONE pattern copy covers
-      // the viewport both ways. Keyed to width alone (the reference's
-      // landscape-only assumption), a portrait phone got a ~280px-tall
-      // pattern needing 4 vertical copies — twice the tiles (and videos) of
-      // desktop, at thumbnail sizes.
+      // the viewport both ways (portrait phones included).
       const k = Math.max(winW / CW, winH / CH)
       const patternW = CW * k
       const patternH = CH * k
 
-      // Replicate enough copies to always cover the viewport, then wrap by the
-      // total pattern span so copies cycle seamlessly.
       const nx = Math.max(2, Math.ceil(winW / patternW) + 1)
       const ny = Math.max(2, Math.ceil(winH / patternH) + 1)
 
+      const s = stateRef.current
+      // Initial offset so the seam isn't centred — only on the first build.
+      // Rebuilds (resize/rotate) keep the current scroll so the user isn't
+      // teleported back to the origin; wrapping tolerates any offset.
+      if (!s.built) {
+        const ox = -winW * 0.1
+        const oy = -winH * 0.1
+        s.scroll.cur = {x: ox, y: oy}
+        s.scroll.target = {x: ox, y: oy}
+        s.scroll.last = {x: ox, y: oy}
+        s.built = true
+      }
+
       const phys: PhysTile[] = []
-      const rendered: Array<{key: string; item: LayerItem; w: number; h: number}> = []
+      const rendered: RenderTile[] = []
+      const margin = 0.2 // eager-load a little beyond the first viewport
 
       base.forEach((b, bi) => {
         const w = b.w * k
         const h = b.h * k
         for (let ix = 0; ix < nx; ix++) {
           for (let iy = 0; iy < ny; iy++) {
+            const x = b.x * k + ix * patternW
+            const y = b.y * k + iy * patternH
+            const ex = x + s.scroll.cur.x
+            const ey = y + s.scroll.cur.y
+            const eager =
+              ex > -winW * margin - w &&
+              ex < winW * (1 + margin) &&
+              ey > -winH * margin - h &&
+              ey < winH * (1 + margin)
             phys.push({
-              x: b.x * k + ix * patternW,
-              y: b.y * k + iy * patternH,
+              x,
+              y,
               w,
               h,
               ease: ((bi * 7 + ix * 13 + iy * 29) % 100) / 200 + 0.5, // 0.5–1.0, stable
               extraX: 0,
               extraY: 0,
             })
-            rendered.push({key: `${bi}-${ix}-${iy}`, item: b.item, w, h})
+            rendered.push({key: `${bi}-${ix}-${iy}`, item: b.item, w, h, eager})
           }
         }
       })
 
-      const s = stateRef.current
       s.wrapX = nx * patternW
       s.wrapY = ny * patternH
-      // Start slightly offset so the seam isn't centred (matches reference).
-      const ox = -winW * 0.1
-      const oy = -winH * 0.1
-      s.scroll.cur = {x: ox, y: oy}
-      s.scroll.target = {x: ox, y: oy}
-      s.scroll.last = {x: ox, y: oy}
 
       physRef.current = phys
       elRef.current = new Array(rendered.length).fill(null)
       wrapRef.current = new Array(rendered.length).fill(null)
       imgRef.current = new Array(rendered.length).fill(null)
+      frameRef.current = new Array(rendered.length).fill(null)
       introDone.current = false
       setTiles(rendered)
     }
@@ -268,7 +307,16 @@ export function LayersGrid({items}: Props) {
 
     const s = stateRef.current
 
-    // Intro: tiles currently on screen fly in from the viewport centre.
+    // Intro: tiles currently on screen fly in from the viewport centre. When
+    // it settles, drop the wrappers' will-change — they never move again, and
+    // ~64 fewer composited layers is real GPU memory back.
+    let introSettled = introDone.current
+    const releaseIntroLayers = () => {
+      introSettled = true
+      wrapRef.current.forEach((w) => {
+        if (w) w.style.willChange = 'auto'
+      })
+    }
     if (!introDone.current) {
       introDone.current = true
       const winW = window.innerWidth
@@ -287,52 +335,33 @@ export function LayersGrid({items}: Props) {
           visible.push(wrap)
         }
       })
-      gsap.to(visible.reverse(), {
-        duration: 2,
-        ease: 'expo.inOut',
-        x: 0,
-        y: 0,
-        stagger: 0.05,
-      })
-    }
-
-    // ── Events ──────────────────────────────────────────────────────────────
-    const onWheel = (e: WheelEvent) => {
-      e.preventDefault()
-      s.scroll.target.x -= e.deltaX * WHEEL_FACTOR
-      s.scroll.target.y -= e.deltaY * WHEEL_FACTOR
-    }
-    const onPointerDown = (e: PointerEvent) => {
-      s.drag.active = true
-      s.mouse.pressT = 1
-      s.drag.startX = e.clientX
-      s.drag.startY = e.clientY
-      s.drag.scrollX = s.scroll.target.x
-      s.drag.scrollY = s.scroll.target.y
-      document.documentElement.classList.add('grabbing')
-    }
-    const onPointerMove = (e: PointerEvent) => {
-      s.mouse.tx = e.clientX / window.innerWidth
-      s.mouse.ty = e.clientY / window.innerHeight
-      if (s.drag.active) {
-        s.scroll.target.x = s.drag.scrollX + (e.clientX - s.drag.startX)
-        s.scroll.target.y = s.drag.scrollY + (e.clientY - s.drag.startY)
+      if (visible.length > 0) {
+        gsap.to(visible.reverse(), {
+          duration: 2,
+          ease: 'expo.inOut',
+          x: 0,
+          y: 0,
+          stagger: 0.05,
+          onComplete: releaseIntroLayers,
+        })
+      } else {
+        releaseIntroLayers()
       }
     }
-    const onPointerUp = () => {
-      s.drag.active = false
-      s.mouse.pressT = 0
-      document.documentElement.classList.remove('grabbing')
-    }
 
-    container.addEventListener('wheel', onWheel, {passive: false})
-    container.addEventListener('pointerdown', onPointerDown)
-    window.addEventListener('pointermove', onPointerMove)
-    window.addEventListener('pointerup', onPointerUp)
-
-    // ── Render loop ───────────────────────────────────────────────────────────
+    // ── Render loop with idle sleep ─────────────────────────────────────────
+    // When everything is settled (no drag, lerps converged, parallax at rest)
+    // the loop stops scheduling itself — zero style writes, zero compositing —
+    // and any input wakes it. The canvas is indistinguishable at rest.
     let raf = 0
+    let running = false
+    let idleFrames = 0
+
     const tick = () => {
+      if (frozenRef.current) {
+        running = false
+        return
+      }
       const sc = s.scroll
       sc.cur.x += (sc.target.x - sc.cur.x) * SCROLL_EASE
       sc.cur.y += (sc.target.y - sc.cur.y) * SCROLL_EASE
@@ -372,7 +401,15 @@ export function LayersGrid({items}: Props) {
         posY = p.y + sc.cur.y + p.extraY + newY
         el.style.transform = `translate(${posX}px, ${posY}px)`
 
-        if (img) {
+        // Inner parallax only matters when the tile can be seen — skip the
+        // second style write for tiles well outside the viewport.
+        if (
+          img &&
+          posX > -p.w * 1.5 &&
+          posX < winW + p.w * 0.5 &&
+          posY > -p.h * 1.5 &&
+          posY < winH + p.h * 0.5
+        ) {
           const z = IMG_OVERSCALE + PRESS_ZOOM * s.mouse.pressC * p.ease
           const mx = -s.mouse.cx * p.ease * 10
           const my = -s.mouse.cy * p.ease * 10
@@ -382,9 +419,102 @@ export function LayersGrid({items}: Props) {
 
       sc.last.x = sc.cur.x
       sc.last.y = sc.cur.y
+
+      // Sleep when settled: lerp gaps, drift, parallax chase and press all ~0.
+      const activity =
+        Math.abs(sc.target.x - sc.cur.x) +
+        Math.abs(sc.target.y - sc.cur.y) +
+        Math.abs(sc.delta.cx) +
+        Math.abs(sc.delta.cy) +
+        (Math.abs(s.mouse.tx - s.mouse.cx) + Math.abs(s.mouse.ty - s.mouse.cy)) * 200 +
+        Math.abs(s.mouse.pressT - s.mouse.pressC) * 20
+      if (!s.drag.active && introSettled && activity < 0.5) idleFrames++
+      else idleFrames = 0
+      if (idleFrames > SLEEP_AFTER_FRAMES) {
+        running = false
+        return
+      }
       raf = requestAnimationFrame(tick)
     }
-    raf = requestAnimationFrame(tick)
+
+    const wake = () => {
+      if (running || frozenRef.current) return
+      running = true
+      idleFrames = 0
+      raf = requestAnimationFrame(tick)
+    }
+    wake()
+
+    // ── Events ──────────────────────────────────────────────────────────────
+    // Momentum: velocity is sampled from the last two pointer moves and
+    // projected into the target on release, so a flick coasts and eases out
+    // instead of dying where the finger stopped.
+    let moveA = {t: 0, x: 0, y: 0}
+    let moveB = {t: 0, x: 0, y: 0}
+
+    const onWheel = (e: WheelEvent) => {
+      e.preventDefault()
+      s.scroll.target.x -= e.deltaX * WHEEL_FACTOR
+      s.scroll.target.y -= e.deltaY * WHEEL_FACTOR
+      wake()
+    }
+    const onPointerDown = (e: PointerEvent) => {
+      s.drag.active = true
+      s.drag.moved = false
+      s.mouse.pressT = 1
+      s.drag.startX = e.clientX
+      s.drag.startY = e.clientY
+      s.drag.scrollX = s.scroll.target.x
+      s.drag.scrollY = s.scroll.target.y
+      moveA = moveB = {t: performance.now(), x: e.clientX, y: e.clientY}
+      document.documentElement.classList.add('grabbing')
+      wake()
+    }
+    const onPointerMove = (e: PointerEvent) => {
+      s.mouse.tx = e.clientX / window.innerWidth
+      s.mouse.ty = e.clientY / window.innerHeight
+      if (s.drag.active) {
+        const dx = e.clientX - s.drag.startX
+        const dy = e.clientY - s.drag.startY
+        if (Math.abs(dx) > TAP_SLOP || Math.abs(dy) > TAP_SLOP) s.drag.moved = true
+        s.scroll.target.x = s.drag.scrollX + dx
+        s.scroll.target.y = s.drag.scrollY + dy
+        moveA = moveB
+        moveB = {t: performance.now(), x: e.clientX, y: e.clientY}
+      }
+      wake()
+    }
+    const onPointerUp = () => {
+      if (s.drag.active && s.drag.moved) {
+        const dt = moveB.t - moveA.t
+        // Only flick when the last movement was recent and fast enough to
+        // read as a throw (a held-then-released drag shouldn't coast).
+        if (dt > 0 && dt < 80 && performance.now() - moveB.t < 80) {
+          const vx = ((moveB.x - moveA.x) / dt) * 1000 // px/s
+          const vy = ((moveB.y - moveA.y) / dt) * 1000
+          const clamp = (v: number) =>
+            Math.max(-FLICK_MAX, Math.min(FLICK_MAX, v * FLICK_PROJECT))
+          s.scroll.target.x += clamp(vx)
+          s.scroll.target.y += clamp(vy)
+        }
+      }
+      s.drag.active = false
+      s.mouse.pressT = 0
+      document.documentElement.classList.remove('grabbing')
+      // Clear the drag flag AFTER the browser dispatches the click this
+      // pointerup produces (click is what tile buttons listen to) — the click
+      // from a real drag must be swallowed, but the next interaction (or a
+      // keyboard Enter) must not be.
+      window.setTimeout(() => {
+        s.drag.moved = false
+      }, 0)
+      wake()
+    }
+
+    container.addEventListener('wheel', onWheel, {passive: false})
+    container.addEventListener('pointerdown', onPointerDown)
+    window.addEventListener('pointermove', onPointerMove)
+    window.addEventListener('pointerup', onPointerUp)
 
     // Caption reveal as tiles enter view.
     const io = new IntersectionObserver(
@@ -394,18 +524,37 @@ export function LayersGrid({items}: Props) {
     )
     container.querySelectorAll('.lg-caption').forEach((c) => io.observe(c))
 
-    // Decoder economy: videos only play while (nearly) on screen, and only up
-    // to a hardware-realistic cap. Every tile copy is its own <video>; with
-    // all of them autoplaying, mobile blows its concurrent-decoder budget and
-    // the whole canvas janks. Beyond the cap, tiles idle on their first frame
-    // (poster/decoded frame) — at these tile sizes the difference is invisible
-    // until they get their turn.
-    const MAX_PLAYING = window.innerWidth < 768 ? 10 : 24
+    // Lazy media: off-viewport tiles rendered without src (images) so the
+    // initial burst is only what's visible; promote as they approach.
+    const lazyIo = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((en) => {
+          if (!en.isIntersecting) return
+          const el = en.target as HTMLImageElement
+          if (el.dataset.src) {
+            el.src = el.dataset.src
+            delete el.dataset.src
+          }
+          lazyIo.unobserve(el)
+        })
+      },
+      {root: container, rootMargin: '60%'},
+    )
+    container.querySelectorAll('img[data-src]').forEach((el) => lazyIo.observe(el))
+
+    // Decoder economy: every tile copy is its own <video>, but copies of the
+    // same file don't each need a decode pipeline — among visible videos, play
+    // ONE per unique source (up to a hardware-realistic cap); the rest hold
+    // their current frame. At tile size the difference is invisible.
+    const MAX_PLAYING = window.innerWidth < 768 ? 8 : 16
     const visibleVids = new Set<HTMLVideoElement>()
     const syncPlayback = () => {
+      if (frozenRef.current) return
+      const playingSrc = new Set<string>()
       let n = 0
       visibleVids.forEach((v) => {
-        if (n < MAX_PLAYING) {
+        if (n < MAX_PLAYING && !playingSrc.has(v.src)) {
+          playingSrc.add(v.src)
           v.play().catch(() => {})
           n++
         } else {
@@ -430,66 +579,126 @@ export function LayersGrid({items}: Props) {
     )
     container.querySelectorAll('video').forEach((v) => vidIo.observe(v))
 
+    // Returning to a backgrounded tab: the browser paused the videos and no
+    // intersection change will replay them — resync (and re-wake) ourselves.
+    const onVisibility = () => {
+      if (document.visibilityState === 'visible' && !frozenRef.current) {
+        syncPlayback()
+        wake()
+      }
+    }
+    document.addEventListener('visibilitychange', onVisibility)
+
+    // Lightbox handshake: freeze the whole canvas (loop + playback) while a
+    // dialog is open; thaw resumes both.
+    controlsRef.current = {
+      wake,
+      freeze: () => {
+        frozenRef.current = true
+        container.querySelectorAll('video').forEach((v) => v.pause())
+      },
+      thaw: () => {
+        frozenRef.current = false
+        syncPlayback()
+        wake()
+      },
+    }
+
     return () => {
+      running = false
       cancelAnimationFrame(raf)
       container.removeEventListener('wheel', onWheel)
       container.removeEventListener('pointerdown', onPointerDown)
       window.removeEventListener('pointermove', onPointerMove)
       window.removeEventListener('pointerup', onPointerUp)
       io.disconnect()
+      lazyIo.disconnect()
       vidIo.disconnect()
+      document.removeEventListener('visibilitychange', onVisibility)
       document.documentElement.classList.remove('grabbing')
     }
   }, [tiles, reduce])
+
+  // Freeze/thaw the canvas around the lightbox.
+  useEffect(() => {
+    if (lightbox != null) controlsRef.current.freeze()
+    else controlsRef.current.thaw()
+  }, [lightbox])
+
+  const openLightbox = (i: number) => {
+    // A drag that happened to end on a tile must not open it.
+    if (stateRef.current.drag.moved) return
+    setLightbox({idx: i, el: frameRef.current[i]})
+  }
 
   // ── Reduced motion: a plain, accessible scrollable grid ───────────────────
   if (reduce) {
     return (
       <div className="px-3 pt-[110px] md:px-[30px]">
         <ul role="list" className="grid grid-cols-2 gap-4 md:grid-cols-3 md:gap-6">
-          {items.map((item, i) => (
-            <li key={i} className="flex flex-col gap-3">
+          {items.map((item, i) => {
+            const frame = (
               <div
                 className="relative overflow-hidden rounded-[4px] md:rounded-[12px]"
                 style={{aspectRatio: item.ratio, backgroundColor: item.color}}
               >
                 <TileMedia item={item} />
               </div>
-              <small className="text-xs leading-4 tracking-[-0.084px] text-text-secondary">
-                {item.caption}
-              </small>
-            </li>
-          ))}
+            )
+            return (
+              <li key={i} className="flex flex-col gap-3">
+                {item.lightbox ? (
+                  <button
+                    type="button"
+                    aria-haspopup="dialog"
+                    aria-label={`Open ${item.caption}`}
+                    onClick={() => setLightbox({idx: i, el: null})}
+                    className="block w-full cursor-zoom-in rounded-[4px] outline-none focus-visible:ring-2 focus-visible:ring-text-primary/40 md:rounded-[12px]"
+                  >
+                    {frame}
+                  </button>
+                ) : (
+                  frame
+                )}
+                <small className="text-xs leading-4 tracking-[-0.084px] text-text-secondary">
+                  {item.caption}
+                </small>
+              </li>
+            )
+          })}
         </ul>
+        {lightbox != null && items[lightbox.idx] && (
+          <PlayLightbox
+            item={items[lightbox.idx]}
+            originEl={null}
+            onClose={() => setLightbox(null)}
+          />
+        )}
       </div>
     )
   }
 
   return (
-    <div
-      ref={containerRef}
-      role="region"
-      aria-label="Infinite gallery — drag or scroll to explore"
-      className="fixed inset-0 h-[100dvh] w-full cursor-grab select-none overflow-hidden [html.grabbing_&]:cursor-grabbing"
-      style={{touchAction: 'none'}}
-    >
-      {tiles.map((t, i) => (
-        <div
-          key={t.key}
-          ref={(el) => {
-            elRef.current[i] = el
-          }}
-          className="absolute left-0 top-0 will-change-transform"
-          style={{width: t.w}}
-        >
-          <div
-            ref={(el) => {
-              wrapRef.current[i] = el
-            }}
-            className="will-change-transform"
-          >
+    <>
+      <div
+        ref={containerRef}
+        role="region"
+        aria-label="Infinite gallery — drag or scroll to explore"
+        className="fixed inset-0 h-[100dvh] w-full cursor-grab select-none overflow-hidden [html.grabbing_&]:cursor-grabbing"
+        style={{touchAction: 'none'}}
+      >
+        {tiles.map((t, i) => {
+          const frame = (
             <div
-              className="relative overflow-hidden rounded-[4px] md:rounded-[12px]"
+              ref={(el) => {
+                frameRef.current[i] = el
+              }}
+              className={
+                'relative overflow-hidden rounded-[4px] md:rounded-[12px]' +
+                (t.item.lightbox
+                  ? ' transition-transform duration-500 ease-[cubic-bezier(0.16,1,0.3,1)] group-hover/tile:scale-[1.02] group-focus-visible/tile:scale-[1.02]'
+                  : '')
+              }
               style={{width: t.w, height: t.h, backgroundColor: t.item.color}}
             >
               <TileMedia
@@ -499,15 +708,54 @@ export function LayersGrid({items}: Props) {
                 }}
                 requestWidth={mediaWidth(t.w)}
                 observed
+                eager={t.eager}
               />
             </div>
-            <small className="lg-caption mt-3 block max-w-full overflow-hidden text-[11px] leading-[1.3] tracking-[-0.084px] text-text-secondary md:text-xs">
-              <span className="lg-caption-inner block">{t.item.caption}</span>
-            </small>
-          </div>
-        </div>
-      ))}
-    </div>
+          )
+          return (
+            <div
+              key={t.key}
+              ref={(el) => {
+                elRef.current[i] = el
+              }}
+              className="absolute left-0 top-0 will-change-transform"
+              style={{width: t.w}}
+            >
+              <div
+                ref={(el) => {
+                  wrapRef.current[i] = el
+                }}
+                className="will-change-transform"
+              >
+                {t.item.lightbox ? (
+                  <button
+                    type="button"
+                    aria-haspopup="dialog"
+                    aria-label={`Open ${t.item.caption}`}
+                    onClick={() => openLightbox(i)}
+                    className="group/tile block w-full cursor-zoom-in rounded-[4px] outline-none focus-visible:ring-2 focus-visible:ring-text-primary/40 md:rounded-[12px]"
+                  >
+                    {frame}
+                  </button>
+                ) : (
+                  frame
+                )}
+                <small className="lg-caption mt-3 block max-w-full overflow-hidden text-[11px] leading-[1.3] tracking-[-0.084px] text-text-secondary md:text-xs">
+                  <span className="lg-caption-inner block">{t.item.caption}</span>
+                </small>
+              </div>
+            </div>
+          )
+        })}
+      </div>
+      {lightbox != null && tiles[lightbox.idx] && (
+        <PlayLightbox
+          item={tiles[lightbox.idx].item}
+          originEl={lightbox.el}
+          onClose={() => setLightbox(null)}
+        />
+      )}
+    </>
   )
 }
 
@@ -528,28 +776,32 @@ function mediaWidth(tileW: number): number {
 /**
  * Tile media — image wins over video (matching the schema rule). The element is
  * over-scaled and ref'd so the loop can apply the cursor-parallax transform.
- * Videos don't autoplay here when `observed` — the canvas's
- * IntersectionObserver starts/stops them as they pan in and out of view.
+ * When `observed`, videos don't autoplay (the canvas's IntersectionObserver
+ * starts/stops them) and non-eager media defers loading: images carry data-src
+ * until they approach the viewport; videos skip even metadata preload.
  */
 function TileMedia({
   item,
   mediaRef,
   requestWidth = 1200,
   observed = false,
+  eager = true,
 }: {
   item: LayerItem
   mediaRef?: (el: HTMLElement | null) => void
   requestWidth?: number
   observed?: boolean
+  eager?: boolean
 }) {
   const common =
     'absolute inset-0 h-full w-full object-cover will-change-transform'
   if (item.image) {
+    const src = urlForImage(item.image).width(requestWidth).auto('format').url()
     return (
       // eslint-disable-next-line @next/next/no-img-element
       <img
         ref={mediaRef as (el: HTMLImageElement | null) => void}
-        src={urlForImage(item.image).width(requestWidth).auto('format').url()}
+        {...(eager || !observed ? {src} : {'data-src': src})}
         alt={item.image.alt ?? item.caption}
         draggable={false}
         className={common}
@@ -567,7 +819,7 @@ function TileMedia({
         muted
         loop
         playsInline
-        preload="metadata"
+        preload={eager || !observed ? 'metadata' : 'none'}
         aria-label={item.caption}
         className={common}
         style={{transform: `scale(${IMG_OVERSCALE})`}}
