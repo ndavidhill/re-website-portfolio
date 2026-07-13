@@ -469,6 +469,14 @@ export const allCaseStudySlugsQuery = groq`
   *[_type == "caseStudy" && defined(slug.current)][].slug.current
 `
 
+/** Slug + last-edit timestamp — feeds `lastModified` in app/sitemap.ts. */
+export const caseStudySitemapQuery = groq`
+  *[_type == "caseStudy" && defined(slug.current)]{
+    "slug": slug.current,
+    _updatedAt
+  }
+`
+
 export const allCaseStudiesQuery = groq`
   *[_type == "caseStudy"] | order(coalesce(order, 9999) asc, year desc){
     _id,
@@ -682,6 +690,22 @@ export async function getAllCaseStudySlugs(): Promise<string[]> {
   const result = await sanityFetch<string[]>(allCaseStudySlugsQuery, {}, [
     'caseStudy',
   ])
+  return result ?? []
+}
+
+export interface CaseStudySitemapEntry {
+  slug: string
+  _updatedAt: string
+}
+
+export async function getCaseStudySitemapEntries(): Promise<
+  CaseStudySitemapEntry[]
+> {
+  const result = await sanityFetch<CaseStudySitemapEntry[]>(
+    caseStudySitemapQuery,
+    {},
+    ['caseStudy'],
+  )
   return result ?? []
 }
 

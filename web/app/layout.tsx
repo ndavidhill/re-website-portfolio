@@ -2,6 +2,7 @@ import type {Metadata} from 'next'
 import localFont from 'next/font/local'
 import {designVariablesCss} from '@/lib/design'
 import {PageTransition} from '@/components/PageTransition'
+import {siteDescription, siteName, siteUrl} from '@/lib/site'
 import './globals.css'
 
 const graphik = localFont({
@@ -41,12 +42,48 @@ const graphik = localFont({
   display: 'swap',
 })
 
+/**
+ * Site-wide metadata defaults. Pages override `title`, `description`,
+ * `alternates.canonical` and `openGraph.images` as needed — anything they don't
+ * set is inherited from here.
+ *
+ * Deliberately no `alternates.canonical` at this level: canonicals inherit down
+ * the tree, so a value here would point every page at the homepage. Each page
+ * declares its own.
+ */
 export const metadata: Metadata = {
+  metadataBase: new URL(siteUrl),
   title: {
-    default: 're.design',
-    template: '%s — re.design',
+    default: siteName,
+    template: `%s — ${siteName}`,
   },
-  description: 'Independent design studio.',
+  description: siteDescription,
+  openGraph: {
+    type: 'website',
+    siteName,
+    locale: 'en_AU',
+    title: siteName,
+    description: siteDescription,
+  },
+  twitter: {
+    card: 'summary_large_image',
+    title: siteName,
+    description: siteDescription,
+  },
+  robots: {
+    index: true,
+    follow: true,
+    googleBot: {
+      index: true,
+      follow: true,
+      // Let Google use full-size image previews and untruncated snippets —
+      // without these it defaults to a small thumbnail, which undersells a
+      // portfolio built on imagery.
+      'max-image-preview': 'large',
+      'max-snippet': -1,
+      'max-video-preview': -1,
+    },
+  },
 }
 
 export default function RootLayout({

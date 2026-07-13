@@ -1,5 +1,6 @@
 import type {Metadata} from 'next'
 import {getHomePage, getInfoPage, urlForImage} from '@/lib/sanity'
+import {pageMetadata} from '@/lib/seo'
 import {SiteHeader} from '@/components/SiteHeader'
 import {ContactAndFooter} from '@/components/ContactAndFooter'
 import {AwardsSection} from '@/components/AwardsSection'
@@ -10,13 +11,27 @@ import {ConnectedBrand} from './_components/ConnectedBrand'
 import {OneCollective} from './_components/OneCollective'
 import {FRAMEWORK_COLLABORATORS, FRAMEWORK_CODES, FRAMEWORK_CONVICTION} from './_components/info-content'
 
+const FALLBACK_DESCRIPTION =
+  're.design is an independent design studio building brands as connected systems. Our approach, our collective, and the work we are recognised for.'
+
 export async function generateMetadata(): Promise<Metadata> {
   const info = await getInfoPage()
-  if (!info) return {title: 'Info'}
-  return {
-    title: info.seoTitle ?? 'Info',
-    description: info.seoDescription,
-  }
+  const title = info?.seoTitle ?? 'Info'
+
+  return pageMetadata({
+    title,
+    socialTitle: `${title} — re.design`,
+    description: info?.seoDescription ?? FALLBACK_DESCRIPTION,
+    path: '/info',
+    image: info?.heroVideoPoster
+      ? urlForImage(info.heroVideoPoster)
+          .width(1200)
+          .height(630)
+          .fit('crop')
+          .auto('format')
+          .url()
+      : undefined,
+  })
 }
 
 export default async function InfoPage() {
@@ -46,6 +61,10 @@ export default async function InfoPage() {
   return (
     <main className="relative w-full bg-canvas text-text-primary">
       <SiteHeader activeHref="/info" />
+
+      {/* The page opens on a silent hero video, so there's no visible text to
+          carry the h1 — keep it screen-reader-only. */}
+      <h1 className="sr-only">About re.design</h1>
 
       <div className="flex w-full flex-col gap-16 px-3 pb-5 pt-[88px] md:gap-[115px] md:px-[30px] md:pt-[110px]">
         <InfoHero

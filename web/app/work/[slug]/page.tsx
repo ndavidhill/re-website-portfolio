@@ -4,9 +4,13 @@ import {
   getAllCaseStudySlugs,
   getCaseStudyBySlug,
   getNextCaseStudies,
+  urlForImage,
 } from '@/lib/sanity'
 import {SiteHeader} from '@/components/SiteHeader'
 import {ContactAndFooter} from '@/components/ContactAndFooter'
+import {JsonLd} from '@/components/JsonLd'
+import {pageMetadata} from '@/lib/seo'
+import {caseStudySchema} from '@/lib/structuredData'
 import {CaseStudyHero} from './_components/CaseStudyHero'
 import {CaseStudyBody} from './_components/CaseStudyBody'
 import {CaseStudyDescription} from './_components/CaseStudyDescription'
@@ -28,10 +32,36 @@ export async function generateMetadata({
   const {slug} = await params
   const caseStudy = await getCaseStudyBySlug(slug)
   if (!caseStudy) return {}
-  return {
-    title: caseStudy.seoTitle ?? `${caseStudy.title} — ${caseStudy.client}`,
-    description: caseStudy.seoDescription ?? caseStudy.summary,
-  }
+
+  // Client first. `title` is authored as a rhetorical question ("How do you
+  // signal real and meaningful change?"), which runs long — leading with it
+  // pushed the client name past the ~60 chars a SERP shows, so the one term
+  // people actually search ("re design commbank") was the part that got cut.
+  const title =
+    caseStudy.seoTitle ?? `${caseStudy.client} — ${caseStudy.title}`
+  const description = caseStudy.seoDescription ?? caseStudy.summary
+
+  // The hero is the strongest card this page can put in front of someone — a
+  // shared link should show the work, not the generic studio card.
+  const ogImage = caseStudy.heroImage
+    ? urlForImage(caseStudy.heroImage)
+        .width(1200)
+        .height(630)
+        .fit('crop')
+        .auto('format')
+        .url()
+    : undefined
+
+  return pageMetadata({
+    title,
+    socialTitle: `${title} — re.design`,
+    description,
+    path: `/work/${slug}`,
+    type: 'article',
+    image: ogImage,
+    imageAlt:
+      caseStudy.heroImage?.alt ?? `${caseStudy.client} — ${caseStudy.title}`,
+  })
 }
 
 export default async function CaseStudyPage({
@@ -51,6 +81,8 @@ export default async function CaseStudyPage({
   return (
     <article className="relative flex w-full flex-col bg-canvas text-text-primary">
       <SiteHeader activeHref="/work" />
+
+      <JsonLd data={caseStudySchema(caseStudy)} />
 
       <div className="flex w-full flex-col gap-16 px-3 pb-5 pt-[88px] md:gap-[115px] md:px-[30px] md:pt-[110px]">
         {/* Intro — hero on the left. On mobile the accordion stacks below

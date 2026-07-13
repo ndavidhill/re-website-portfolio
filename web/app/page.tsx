@@ -13,7 +13,11 @@ import {ContactAndFooter} from '@/components/ContactAndFooter'
 import {Reveal} from '@/components/Reveal'
 import {FlipOnResize} from '@/components/FlipOnResize'
 import {AnimatedHeading} from '@/components/AnimatedHeading'
+import {JsonLd} from '@/components/JsonLd'
 import {type} from '@/lib/design'
+import {pageMetadata} from '@/lib/seo'
+import {siteDescription, siteName} from '@/lib/site'
+import {organizationSchema} from '@/lib/structuredData'
 import {StickyHomeVideo} from './_components/StickyHomeVideo'
 import {WorkCard} from './_components/WorkCard'
 import {HomeNewsroomCarousel} from './_components/HomeNewsroomCarousel'
@@ -29,11 +33,28 @@ const SHOW_NEWSROOM = false
 
 export async function generateMetadata(): Promise<Metadata> {
   const home = await getHomePage()
-  if (!home) return {}
-  return {
-    title: home.seoTitle ?? 're.design',
-    description: home.seoDescription,
-  }
+
+  // The root layout's `%s — re.design` template applies to child segments, not
+  // to this one, so the homepage title stands alone and has to carry the
+  // positioning itself.
+  const title = home?.seoTitle ?? `${siteName} — Independent design studio`
+
+  return pageMetadata({
+    title,
+    socialTitle: title,
+    description: home?.seoDescription ?? siteDescription,
+    path: '/',
+    // Hero poster is the only image the homepage has; without it, pageMetadata
+    // falls back to the generated site-wide card.
+    image: home?.heroVideoPoster
+      ? urlForImage(home.heroVideoPoster)
+          .width(1200)
+          .height(630)
+          .fit('crop')
+          .auto('format')
+          .url()
+      : undefined,
+  })
 }
 
 export default async function HomePage() {
@@ -66,6 +87,14 @@ export default async function HomePage() {
   return (
     <main className="relative w-full bg-canvas text-text-primary">
       <SiteHeader />
+
+      <JsonLd data={organizationSchema(home.newBusinessEmail)} />
+
+      {/* The hero is a silent full-bleed reel, so the page has no visible text
+          to carry its h1. Rather than force a heading into the art direction,
+          the h1 is screen-reader-only — it still gives crawlers and assistive
+          tech the document's top-level heading. */}
+      <h1 className="sr-only">{siteName} — independent design studio</h1>
 
       {/* Hero: empty viewport-tall region; the StickyHomeVideo overlays it
           while centred, then animates to bottom-right as the user scrolls. */}

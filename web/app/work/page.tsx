@@ -1,15 +1,18 @@
 import type {Metadata} from 'next'
 import {getWorkIndexCaseStudies} from '@/lib/sanity'
+import {pageMetadata} from '@/lib/seo'
 import {SiteHeader} from '@/components/SiteHeader'
 import {ContactAndFooter} from '@/components/ContactAndFooter'
 import {AnimatedHeading} from '@/components/AnimatedHeading'
 import {type} from '@/lib/design'
 import {WorkIndexRow} from './_components/WorkIndexRow'
 
-export const metadata: Metadata = {
+export const metadata: Metadata = pageMetadata({
   title: 'Work',
+  socialTitle: 'Work — re.design',
   description: 'Selected projects from re.design.',
-}
+  path: '/work',
+})
 
 export default async function WorkIndexPage() {
   const caseStudies = await getWorkIndexCaseStudies()

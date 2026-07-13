@@ -1,12 +1,16 @@
 import type {Metadata} from 'next'
 import {SiteHeader} from '@/components/SiteHeader'
 import {getPlayItems, type PlayItem} from '@/lib/sanity'
+import {pageMetadata} from '@/lib/seo'
 import {LayersGrid, type LayerItem} from './_components/LayersGrid'
 
-export const metadata: Metadata = {
+export const metadata: Metadata = pageMetadata({
   title: 'Play',
-  description: 'Studio experiments, sketches and side studies from re.design.',
-}
+  socialTitle: 'Play — re.design',
+  description:
+    'Studio experiments, sketches and side studies from re.design.',
+  path: '/play',
+})
 
 // Muted placeholder palette — shows through tiles with no media so empty
 // entries still read as intentional. Cycled per item.
@@ -60,6 +64,10 @@ export default async function PlayPage() {
   return (
     <main className="relative h-[100dvh] w-full overflow-hidden bg-canvas text-text-primary">
       <SiteHeader activeHref="/play" />
+
+      {/* The page is a full-bleed drifting canvas with no chrome to hang a
+          visible heading on — keep the h1 screen-reader-only. */}
+      <h1 className="sr-only">Play — studio experiments and sketches</h1>
 
       {/* Subtle top scrim so the nav stays legible over imagery (the page
           doesn't scroll, so the header's own backdrop never engages). */}
