@@ -5,13 +5,12 @@ import {gsap} from 'gsap'
 import {useReducedMotion} from 'framer-motion'
 import {urlForImage} from '@/lib/sanity'
 import {MuteToggle} from '@/components/MuteToggle'
+import {PLAY_ASPECT, type PlayRatio} from '@/lib/playAspect'
 import type {LayerItem} from './LayersGrid'
 
-const ASPECT: Record<LayerItem['ratio'], number> = {'4/5': 0.8, '1/1': 1, '16/9': 16 / 9}
-
 /** Fit the item's aspect into the viewport, centred, leaving caption room. */
-function targetRect(ratio: LayerItem['ratio']) {
-  const ar = ASPECT[ratio]
+function targetRect(ratio: PlayRatio) {
+  const ar = PLAY_ASPECT[ratio]
   const maxW = Math.min(window.innerWidth * 0.86, 1280)
   const maxH = window.innerHeight * 0.72
   let w = maxW

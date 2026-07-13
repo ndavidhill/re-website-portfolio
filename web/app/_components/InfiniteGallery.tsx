@@ -6,6 +6,7 @@ import {gsap} from 'gsap'
 import {Observer} from 'gsap/Observer'
 import {useReducedMotion} from 'framer-motion'
 import {urlForImage, type SanityImage} from '@/lib/sanity'
+import type {PlayRatio} from '@/lib/playAspect'
 
 // Plugin registration is idempotent — safe in the client bundle.
 if (typeof window !== 'undefined') {
@@ -15,7 +16,7 @@ if (typeof window !== 'undefined') {
 export interface GalleryItem {
   caption: string
   /** CSS aspect-ratio string — drives item width given the shared row height. */
-  ratio: '4/5' | '1/1' | '16/9'
+  ratio: PlayRatio
   /** Fallback tile colour when no media is present. */
   color: string
   /** Optional Sanity image (takes precedence over video). */

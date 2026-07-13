@@ -1,6 +1,7 @@
 import {createClient, type QueryParams} from 'next-sanity'
 import {createImageUrlBuilder} from '@sanity/image-url'
 import {groq} from 'next-sanity'
+import type {PlayRatio} from './playAspect'
 
 const projectId = process.env.NEXT_PUBLIC_SANITY_PROJECT_ID ?? ''
 const dataset = process.env.NEXT_PUBLIC_SANITY_DATASET ?? 'production'
@@ -392,7 +393,7 @@ export interface PlayItem {
   title: string
   row: 1 | 2
   order?: number
-  aspectRatio: '4/5' | '1/1' | '16/9'
+  aspectRatio: PlayRatio
   /** Tapping the tile opens the item full-screen in a lightbox. */
   lightbox?: boolean
   image?: SanityImage

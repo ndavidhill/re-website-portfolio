@@ -4,11 +4,12 @@ import {useEffect, useRef, useState} from 'react'
 import {gsap} from 'gsap'
 import {useReducedMotion} from 'framer-motion'
 import {urlForImage, type SanityImage} from '@/lib/sanity'
+import {PLAY_ASPECT, type PlayRatio} from '@/lib/playAspect'
 import {PlayLightbox} from './PlayLightbox'
 
 export interface LayerItem {
   caption: string
-  ratio: '4/5' | '1/1' | '16/9'
+  ratio: PlayRatio
   color: string
   image?: SanityImage
   videoUrl?: string
@@ -45,7 +46,7 @@ const TAP_SLOP = 6
 /** Settled frames before the render loop goes to sleep. */
 const SLEEP_AFTER_FRAMES = 45
 
-const ASPECT: Record<LayerItem['ratio'], number> = {'4/5': 0.8, '1/1': 1, '16/9': 16 / 9}
+const ASPECT = PLAY_ASPECT
 
 /** Deterministic pseudo-random in [0,1) — keeps the scatter stable across renders. */
 function rnd(seed: number): number {

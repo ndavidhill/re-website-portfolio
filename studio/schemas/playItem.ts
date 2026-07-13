@@ -47,14 +47,23 @@ export default defineType({
       name: 'aspectRatio',
       title: 'Aspect ratio',
       type: 'string',
-      description: 'Determines tile width — all tiles share a row height.',
+      description:
+        'Determines tile width — all tiles share a row height, so wider ratios take more space.',
       options: {
+        // Keep in step with PLAY_ASPECT in web/lib/playAspect.ts — a value the
+        // web app doesn't know about has no width and lays out as 0.
         list: [
+          {title: '9 × 16 (tall portrait)', value: '9/16'},
+          {title: '2 × 3 (portrait)', value: '2/3'},
+          {title: '3 × 4 (portrait)', value: '3/4'},
           {title: '4 × 5 (portrait)', value: '4/5'},
           {title: '1 × 1 (square)', value: '1/1'},
+          {title: '4 × 3 (landscape)', value: '4/3'},
+          {title: '3 × 2 (landscape)', value: '3/2'},
           {title: '16 × 9 (landscape)', value: '16/9'},
+          {title: '21 × 9 (panoramic)', value: '21/9'},
         ],
-        layout: 'radio',
+        layout: 'dropdown',
       },
       validation: (Rule) => Rule.required(),
       initialValue: '4/5',
