@@ -6,9 +6,12 @@ import {defineField, defineType} from 'sanity'
  * Surfaces fed from here:
  *  - Hero: two video files (dark + light), with a poster fallback.
  *  - Brand pillars: lead heading, intro paragraph, a default image, and a
- *    list of 5+ pillars (title + body + image). Each pillar's image swaps
- *    into the left column when the visitor hovers / focuses that pillar on
- *    the right.
+ *    single ordered list of rows (title + body + optional image) rendered as
+ *    an indexed 01…N list. This one list holds everything — the framing rows
+ *    (Conviction, Collaborators, Connected codes) and the "C" pillars alike;
+ *    add, remove and reorder freely. A row's image swaps into the left column
+ *    when the visitor hovers / focuses it; rows without an image fall back to
+ *    the default image.
  *  - One collective: subheading + intro paragraph + team headshot grid.
  *  - Recognition table is reused from `homePage.awards` (not stored here).
  */
@@ -89,7 +92,7 @@ export default defineType({
       type: 'array',
       group: 'pillars',
       description:
-        'The pillar list on the right. Each pillar\'s image swaps into the left column on hover/focus.',
+        'The full indexed list on the right, in display order (01…N). Add, remove and reorder rows freely — the framing rows (e.g. Conviction, Collaborators, Connected codes) and the "C" pillars all live here. A row\'s image swaps into the left column on hover/focus; leave the image empty for framing rows and they fall back to the default image.',
       of: [
         {
           type: 'object',
@@ -111,48 +114,19 @@ export default defineType({
             {
               name: 'image',
               type: 'image',
-              title: 'Hover image',
+              title: 'Hover image (optional)',
               options: {hotspot: true},
               fields: [{name: 'alt', type: 'string', title: 'Alt text'}],
-              validation: (Rule) => Rule.required(),
+              description:
+                'Swaps into the left column on hover. Leave empty for framing rows — they use the default image.',
             },
           ],
           preview: {
-            select: {title: 'title', media: 'image'},
+            select: {title: 'title', subtitle: 'body', media: 'image'},
           },
         },
       ],
       validation: (Rule) => Rule.min(1),
-    }),
-
-    // Framework framing around the pillars (deck slide 4: Conviction → the
-    // 5 C's → Collaborators → Connected experiences & codes).
-    defineField({
-      name: 'frameworkConviction',
-      title: 'Framework — conviction (lead-in above pillars)',
-      type: 'text',
-      rows: 2,
-      group: 'pillars',
-      initialValue:
-        'Conviction — a clear belief and cultural ambition that guides every choice and the outcomes we design for.',
-    }),
-    defineField({
-      name: 'frameworkCollaborators',
-      title: 'Framework — collaborators (band below pillars)',
-      type: 'text',
-      rows: 2,
-      group: 'pillars',
-      initialValue:
-        'Collaborators — the creators and partners that amplify the brand in culture.',
-    }),
-    defineField({
-      name: 'frameworkCodes',
-      title: 'Framework — connected experiences & codes (band below pillars)',
-      type: 'text',
-      rows: 2,
-      group: 'pillars',
-      initialValue:
-        'Connected experiences & codes — the distinctive brand signals that make it recognisable everywhere.',
     }),
 
     // ── Approach (deck slides 1–3, 5) ───────────────────────────────────────

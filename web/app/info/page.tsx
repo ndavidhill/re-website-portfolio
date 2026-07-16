@@ -9,7 +9,6 @@ import {ApproachStack} from './_components/ApproachStack'
 import {BrandPillars} from './_components/BrandPillars'
 import {ConnectedBrand} from './_components/ConnectedBrand'
 import {OneCollective} from './_components/OneCollective'
-import {FRAMEWORK_COLLABORATORS, FRAMEWORK_CODES, FRAMEWORK_CONVICTION} from './_components/info-content'
 
 const FALLBACK_DESCRIPTION =
   're.design is an independent design studio building brands as connected systems. Our approach, our collective, and the work we are recognised for.'
@@ -100,9 +99,6 @@ export default async function InfoPage() {
           intro={info.pillarsIntro}
           defaultImage={info.pillarsDefaultImage}
           pillars={info.pillars ?? []}
-          conviction={info.frameworkConviction ?? FRAMEWORK_CONVICTION}
-          collaborators={info.frameworkCollaborators ?? FRAMEWORK_COLLABORATORS}
-          codes={info.frameworkCodes ?? FRAMEWORK_CODES}
         />
 
         <ConnectedBrand

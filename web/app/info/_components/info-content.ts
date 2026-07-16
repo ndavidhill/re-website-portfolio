@@ -69,14 +69,6 @@ export const SYSTEM_PHASES: TitleBody[] = [
   },
 ]
 
-// Slide 4 — framework framing around the 5 C's.
-export const FRAMEWORK_CONVICTION =
-  'Conviction — a clear belief and cultural ambition that guides every choice and the outcomes we design for.'
-export const FRAMEWORK_COLLABORATORS =
-  'Collaborators — the creators and partners that amplify the brand in culture.'
-export const FRAMEWORK_CODES =
-  'Connected experiences & codes — the distinctive brand signals that make it recognisable everywhere.'
-
 // Slide 5 — the connected brand layers.
 export const CONNECTED_HEADING =
   'Cultural power is built when every part of the brand system is connected'

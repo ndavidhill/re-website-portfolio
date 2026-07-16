@@ -332,7 +332,8 @@ export interface BrandPillar {
   _key: string
   title: string
   body: string
-  image: SanityImage
+  /** Optional — framing rows have none and fall back to the default image. */
+  image?: SanityImage
 }
 
 /**
@@ -372,9 +373,6 @@ export interface InfoPage {
   pillarsIntro?: string
   pillarsDefaultImage?: SanityImage
   pillars: BrandPillar[]
-  frameworkConviction?: string
-  frameworkCollaborators?: string
-  frameworkCodes?: string
   collectiveHeading?: string
   collectiveSubheading?: string
   collectiveIntro?: string
@@ -592,9 +590,6 @@ export const infoPageQuery = groq`
     pillarsIntro,
     pillarsDefaultImage{..., asset->},
     pillars[]{_key, title, body, image{..., asset->}},
-    frameworkConviction,
-    frameworkCollaborators,
-    frameworkCodes,
     collectiveHeading,
     collectiveSubheading,
     collectiveIntro,

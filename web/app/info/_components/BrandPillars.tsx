@@ -11,24 +11,13 @@ interface Props {
   heading: string
   intro?: string
   defaultImage?: SanityImage
+  /** The full ordered list (01…N). Rows without an image fall back to the
+   *  default image — used for framing rows like Conviction / Collaborators. */
   pillars: BrandPillar[]
-  /** Deck slide 4 framing. Conviction leads the list (01); collaborators and
-   *  connected codes close it (07/08). All carry "Label — statement" copy. */
-  conviction?: string
-  collaborators?: string
-  codes?: string
 }
 
 const EASE = 'ease-[cubic-bezier(0.16,1,0.3,1)]'
 const pad = (n: number) => String(n).padStart(2, '0')
-
-/** Split "Label — statement" framework copy into {title, body}. */
-function splitBand(s: string, fallbackTitle: string): {title: string; body: string} {
-  const parts = s.split(/\s+—\s+/)
-  return parts.length > 1
-    ? {title: parts[0], body: parts.slice(1).join(' — ')}
-    : {title: fallbackTitle, body: s}
-}
 
 interface Row {
   key: string
@@ -38,34 +27,21 @@ interface Row {
 }
 
 /**
- * The framework as one indexed, hairline-divided list (01–08): Conviction leads,
- * the five C's sit within, Collaborators and Connected codes close it. The five
- * C's each carry an image that cross-fades into the sticky media panel on
- * hover/focus; the framing rows (Conviction / Collaborators / Codes) have no
- * image of their own, so they fall back to the default image. The active state
- * persists on leave and is mirrored by a caption on the media.
+ * The framework as one indexed, hairline-divided list (01…N), authored end to
+ * end in Studio. Rows that carry an image cross-fade it into the sticky media
+ * panel on hover/focus; rows without one (framing rows like Conviction or
+ * Collaborators) fall back to the default image. The active state persists on
+ * leave and is mirrored by a caption on the media.
  */
-export function BrandPillars({
-  heading,
-  intro,
-  defaultImage,
-  pillars,
-  conviction,
-  collaborators,
-  codes,
-}: Props) {
+export function BrandPillars({heading, intro, defaultImage, pillars}: Props) {
   const [activeIdx, setActiveIdx] = useState(0)
 
-  const rows: Row[] = [
-    ...(conviction ? [{key: 'conviction', ...splitBand(conviction, 'Conviction')}] : []),
-    ...pillars.map((p) => ({key: p._key, title: p.title, body: p.body, image: p.image})),
-    ...(collaborators
-      ? [{key: 'collaborators', ...splitBand(collaborators, 'Collaborators')}]
-      : []),
-    ...(codes
-      ? [{key: 'codes', ...splitBand(codes, 'Connected experiences & codes')}]
-      : []),
-  ]
+  const rows: Row[] = pillars.map((p) => ({
+    key: p._key,
+    title: p.title,
+    body: p.body,
+    image: p.image,
+  }))
 
   const total = rows.length
   const activeRow = rows[activeIdx]
