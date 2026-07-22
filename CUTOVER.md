@@ -32,25 +32,30 @@ map is in the Appendix for reference/spot-checking only.
 - [ ] **Vercel** access to the team that owns project `web`
       (org `team_UHbnMenOjX4VAmoSEBNmefJQ`), with permission to add domains and
       edit environment variables.
-- [ ] **DNS management** access for `re.design` (registrar or DNS host — whoever
-      currently controls the zone).
+- [ ] **DNS management** access for `re.design` in **AWS Route 53** (the hosted
+      zone for the domain), with permission to edit records.
 - [ ] The current **production `*.vercel.app` URL** for project `web`
       (Vercel → Project `web` → Domains). Use this to test the live build
       *before* touching DNS.
 - [ ] Confirm which hostnames are in public use: **apex `re.design`**, **`www`**,
       or both. Decide the primary (recommend apex `re.design`, with `www`
       redirecting to it — Vercel does this automatically once both are added).
-- [ ] Record the **current DNS records** for `re.design` (A / AAAA / CNAME / ALIAS)
-      as-is, so we have an exact rollback target. Screenshot the zone.
+- [ ] In the Route 53 hosted zone, record the **current records** for `re.design`
+      and `www` (A / AAAA / CNAME / Alias) as-is, so we have an exact rollback
+      target. Screenshot the zone. **Leave MX, TXT (SPF/DKIM/domain-verification),
+      NS and SOA records untouched** — those are email and delegation, unrelated
+      to the website cutover.
 
 ---
 
 ## 3. Pre-cutover (T-48h to T-24h)
 
-1. **Lower the DNS TTL.** On the current A/ALIAS/CNAME records for `re.design`
-   (and `www` if used), set TTL to **300s (5 min)**. This shortens propagation
-   and speeds rollback if needed. Do this at least a full old-TTL period ahead
-   (if the old TTL was 24h, lower it 24h+ before cutover).
+1. **Lower the DNS TTL.** In Route 53, edit the current website records for
+   `re.design` (and `www` if used) and set TTL to **300s (5 min)**. This shortens
+   propagation and speeds rollback if needed. Do this at least a full old-TTL
+   period ahead (if the old TTL was 24h, lower it 24h+ before cutover). Note: if
+   the apex is currently an **Alias** record (Alias has no editable TTL — it
+   follows the target), the low-TTL step only applies to plain A/CNAME records.
 
 2. **Set the canonical URL in Vercel** so SEO metadata uses the real domain:
    - Vercel → Project `web` → **Settings → Environment Variables**
@@ -73,19 +78,22 @@ Do these in order.
 1. **Add the domain in Vercel.** Vercel → Project `web` → **Settings → Domains** →
    add `re.design` (and `www.re.design` if in use). Vercel will display the exact
    DNS records it wants — **use the values Vercel shows**, as they are
-   authoritative. They will be along these lines:
+   authoritative. For Route 53 they will be:
 
-   | Host              | Type  | Value (confirm in Vercel dashboard) |
-   |-------------------|-------|--------------------------------------|
-   | `re.design` (apex)| `A`   | `76.76.21.21`                        |
-   | `www`             | `CNAME` | `cname.vercel-dns.com`             |
+   | Route 53 record   | Type    | Value (confirm in Vercel dashboard) |
+   |-------------------|---------|--------------------------------------|
+   | `re.design` (apex)| `A`     | `76.76.21.21`                        |
+   | `www.re.design`   | `CNAME` | `cname.vercel-dns.com`               |
 
-   > If the DNS host supports ALIAS/ANAME/CNAME-flattening at the apex, Vercel may
-   > offer a CNAME-style target for the apex instead — prefer that if shown.
+   > **Route 53 specifics:** the apex (`re.design`) must be a plain **A record** to
+   > `76.76.21.21`. Do **not** use a Route 53 *Alias* here — Alias only targets AWS
+   > resources (CloudFront/ELB/S3), and Vercel is external, so it won't work. Leave
+   > "Alias" toggled **off** and enter the IP directly. `www` is a standard CNAME.
 
-2. **Update the DNS records** at the registrar/DNS host to the values from step 1.
-   Remove the **old** records that pointed at the previous host (don't leave stale
-   A/AAAA/CNAME entries that conflict).
+2. **Update the records in Route 53** to the values from step 1 (edit the existing
+   website A/CNAME records in the hosted zone, or create them if absent). **Remove
+   or overwrite the old website records** that pointed at the previous host so
+   nothing conflicts. Do not touch MX / TXT / NS / SOA.
 
 3. **Trigger a Production redeploy** so `NEXT_PUBLIC_SITE_URL` (from §3.2) is baked
    in: Vercel → Project `web` → Deployments → redeploy latest production, **or**
