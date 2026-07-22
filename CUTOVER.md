@@ -1,177 +1,193 @@
-# Domain cutover runbook — re.design → new Vercel build
+# Domain cutover runbook — re.design → new Vercel project
 
-Instructions for the IT/infrastructure team to point the production domain at the
-new website and retire the old one. Companion to `PROJECT.md` and `MIGRATION.md`.
+Instructions for the IT team to move the production domain to the new website.
+Companion to `PROJECT.md` and `MIGRATION.md`.
 
-**Estimated hands-on time:** ~30–45 min at cutover, plus DNS propagation wait.
+**Estimated hands-on time:** ~20–30 min in the cutover window, plus a short
+verification wait.
 **Recommended window:** low-traffic period (e.g. early morning / weekend).
 
 ---
 
-## 1. What's changing
+## 1. The situation (read first — this is not a normal DNS cutover)
 
-- The new site is a Next.js app hosted on **Vercel** (project `web`).
-- The old site (Prismic CMS + custom frontend) stays **live and untouched** until
-  we confirm the new one is healthy, then is decommissioned after ~2 weeks.
-- We are only changing **DNS** — where `re.design` points. No content moves at
-  cutover; that already happened in Sanity.
+- The **new** site is a Next.js app on **Vercel**, in *our* project `web`
+  (org `team_UHbnMenOjX4VAmoSEBNmefJQ`). It is built and deployed; we test it on
+  its `*.vercel.app` URL before cutover.
+- The **current live** site is **also on Vercel**, under a **different account
+  owned by the agency** that built it. DNS already points at Vercel:
+  - `re.design` → A `76.76.21.21`
+  - `www.re.design` → CNAME `cname.vercel-dns.com`
+  - (apex currently 301/308-redirects to `www.re.design`)
+- **DNS is hosted at DigiCert DNS** (nameservers `ns10–15.digicertdns.com/.net`),
+  which **our IT team can edit**. It is **not** AWS Route 53.
+
+Because DNS already resolves to Vercel, **cutover does not involve changing any
+A/CNAME records.** Cutover means **claiming the domain onto our Vercel project**,
+which Vercel does once we prove we control the DNS via a `_vercel` TXT record.
+
+### ⚠️ The TXT record IS the go-live switch
+
+When we add `re.design` to our Vercel project, Vercel will ask for a TXT record at
+`_vercel.re.design` because the domain is in use on the agency's account. **As soon
+as Vercel detects that TXT record and confirms ownership, it moves the domain to
+our project and our site goes live — and the agency's deployment stops serving it.**
+
+So: **do not add the TXT record until we are in the cutover window and have QA'd
+the new build.** Vercel's UI calls this "verification" and says you can remove the
+record afterward — true, but for this domain the verification step *is* the
+cutover, not a harmless preliminary.
 
 ### You do NOT need to configure any redirects
 
-All old→new URL redirects (culled case studies, renamed projects, retired
-sections like `/about`, `/careers`, `/contact`, `/think`) are **built into the
-application** (`web/next.config.ts`) and are already deployed on Vercel. They
-travel with the deployment and apply automatically the moment the domain points
-at Vercel. Do not recreate them at the registrar, CDN, or in any proxy. The full
-map is in the Appendix for reference/spot-checking only.
+All old→new URL redirects (culled/renamed case studies, retired sections like
+`/about`, `/careers`, `/contact`, `/think`) are built into the app
+(`web/next.config.ts`) and already deployed. They apply automatically the moment
+the domain is on our project. Full map in the Appendix, for spot-checking only.
 
 ---
 
-## 2. Prerequisites — access & info to gather first
+## 2. Prerequisites
 
-- [ ] **Vercel** access to the team that owns project `web`
-      (org `team_UHbnMenOjX4VAmoSEBNmefJQ`), with permission to add domains and
-      edit environment variables.
-- [ ] **DNS management** access for `re.design` in **AWS Route 53** (the hosted
-      zone for the domain), with permission to edit records.
-- [ ] The current **production `*.vercel.app` URL** for project `web`
-      (Vercel → Project `web` → Domains). Use this to test the live build
-      *before* touching DNS.
-- [ ] Confirm which hostnames are in public use: **apex `re.design`**, **`www`**,
-      or both. Decide the primary (recommend apex `re.design`, with `www`
-      redirecting to it — Vercel does this automatically once both are added).
-- [ ] In the Route 53 hosted zone, record the **current records** for `re.design`
-      and `www` (A / AAAA / CNAME / Alias) as-is, so we have an exact rollback
-      target. Screenshot the zone. **Leave MX, TXT (SPF/DKIM/domain-verification),
-      NS and SOA records untouched** — those are email and delegation, unrelated
-      to the website cutover.
+- [ ] **Vercel** access to our project `web` (add domains, edit env vars).
+- [ ] **DigiCert DNS** access to the `re.design` zone (to add the TXT record).
+- [ ] The current production **`*.vercel.app` URL** for project `web`
+      (Vercel → Project `web` → Domains) — to QA the new site pre-cutover.
+- [ ] **Agency coordination.** We do **not** have access to the agency's Vercel
+      account. Notify them of the cutover window and that their deployment will
+      stop serving `re.design` once we claim it. Confirm whether they need to
+      keep a copy running, and agree a contact for the unlikely rollback.
+- [ ] Screenshot the current DigiCert DNS zone (all records) for reference.
+      **We will not change A/CNAME/MX/TXT/NS/SOA at cutover** — only *add* the
+      temporary `_vercel` TXT record.
 
 ---
 
-## 3. Pre-cutover (T-48h to T-24h)
+## 3. Decide the primary hostname (www vs apex)
 
-1. **Lower the DNS TTL.** In Route 53, edit the current website records for
-   `re.design` (and `www` if used) and set TTL to **300s (5 min)**. This shortens
-   propagation and speeds rollback if needed. Do this at least a full old-TTL
-   period ahead (if the old TTL was 24h, lower it 24h+ before cutover). Note: if
-   the apex is currently an **Alias** record (Alias has no editable TTL — it
-   follows the target), the low-TTL step only applies to plain A/CNAME records.
+The live site currently serves **`www.re.design`** as primary (apex redirects to
+www), so search engines have indexed the `www` host. To avoid changing the
+canonical host at the same time as the platform, **recommend keeping `www.re.design`
+as primary**, with the apex redirecting to it (Vercel does this automatically once
+both are added and `www` is set as primary).
 
-2. **Set the canonical URL in Vercel** so SEO metadata uses the real domain:
-   - Vercel → Project `web` → **Settings → Environment Variables**
-   - Add for the **Production** environment:
-     `NEXT_PUBLIC_SITE_URL = https://re.design`
-   - This must be a Production redeploy to take effect (step 4 below), so add it
-     now and it will apply on the next deploy.
+- If keeping www primary: set `NEXT_PUBLIC_SITE_URL = https://www.re.design`.
+- If we deliberately move to the bare apex instead: set
+  `NEXT_PUBLIC_SITE_URL = https://re.design` and make the apex primary. (This
+  changes every canonical URL, so only do it as a conscious SEO decision.)
 
-3. **Smoke-test the new build on its `*.vercel.app` URL** (not the live domain):
+---
+
+## 4. Pre-cutover (do these BEFORE touching the TXT record)
+
+1. **Set the canonical URL env var.** Vercel → Project `web` → Settings →
+   Environment Variables → add for **Production**:
+   `NEXT_PUBLIC_SITE_URL = https://www.re.design` (per §3).
+
+2. **Redeploy production** so the env var is baked in: Vercel → Project `web` →
+   Deployments → redeploy latest production (or push a commit to `main`).
+
+3. **QA the new build on its `*.vercel.app` URL** (not the live domain):
    - Home, `/work`, a case study, `/info`, `/play` all load.
-   - Images render (served from `cdn.sanity.io`).
-   - No console errors; site is responsive on mobile.
+   - Images render (from `cdn.sanity.io`); no console errors; mobile looks right.
+   - This is the QA that matters, because rollback is limited (see §7).
+
+4. **Confirm the agency is ready** for the window.
 
 ---
 
-## 4. Cutover (low-traffic window)
+## 5. Cutover (low-traffic window)
 
-Do these in order.
+1. **Add the domain in Vercel.** Vercel → Project `web` → Settings → Domains →
+   add `www.re.design` **and** `re.design`. Set the primary per §3 (recommend
+   `www`). Vercel will report the domain is in use on another account and show a
+   **TXT challenge** for `_vercel.re.design`.
 
-1. **Add the domain in Vercel.** Vercel → Project `web` → **Settings → Domains** →
-   add `re.design` (and `www.re.design` if in use). Vercel will display the exact
-   DNS records it wants — **use the values Vercel shows**, as they are
-   authoritative. For Route 53 they will be:
+2. **Add the TXT record in DigiCert DNS** — this is the go-live action:
+   - **Type:** TXT
+   - **Name / Host:** `_vercel` (fully `_vercel.re.design`)
+   - **Value:** the **exact** string Vercel shows (looks like
+     `vc-domain-verify=re.design,<token>`). Copy it verbatim.
+   - **TTL:** 300s.
 
-   | Route 53 record   | Type    | Value (confirm in Vercel dashboard) |
-   |-------------------|---------|--------------------------------------|
-   | `re.design` (apex)| `A`     | `76.76.21.21`                        |
-   | `www.re.design`   | `CNAME` | `cname.vercel-dns.com`               |
+3. **Verify in Vercel.** Vercel polls automatically; you can also click Refresh /
+   Verify. Once it detects the TXT record, it attaches the domain to our project
+   and provisions the TLS certificate. The domain shows **"Valid Configuration"**.
+   **At this point the new site is live on `re.design`.**
 
-   > **Route 53 specifics:** the apex (`re.design`) must be a plain **A record** to
-   > `76.76.21.21`. Do **not** use a Route 53 *Alias* here — Alias only targets AWS
-   > resources (CloudFront/ELB/S3), and Vercel is external, so it won't work. Leave
-   > "Alias" toggled **off** and enter the IP directly. `www` is a standard CNAME.
+4. **A/CNAME records:** no change needed — they already point at Vercel. Only
+   touch them if Vercel explicitly flags a record as needing an update.
 
-2. **Update the records in Route 53** to the values from step 1 (edit the existing
-   website A/CNAME records in the hosted zone, or create them if absent). **Remove
-   or overwrite the old website records** that pointed at the previous host so
-   nothing conflicts. Do not touch MX / TXT / NS / SOA.
-
-3. **Trigger a Production redeploy** so `NEXT_PUBLIC_SITE_URL` (from §3.2) is baked
-   in: Vercel → Project `web` → Deployments → redeploy latest production, **or**
-   push any commit to `main`. (If the env var was already set before the most
-   recent production deploy, this is a no-op — but redeploy to be safe.)
-
-4. **Wait for DNS propagation + SSL.** Vercel auto-provisions the TLS certificate
-   once DNS resolves to it. This usually completes within minutes but can take up
-   to ~1h. The domain in Vercel → Domains will show **"Valid Configuration"** and
-   a green padlock when ready.
+5. **Remove the `_vercel` TXT record** once Vercel confirms verification (optional
+   but tidy).
 
 ---
 
-## 5. Post-cutover verification
+## 6. Post-cutover verification
 
-Run these once Vercel shows the domain valid:
+- [ ] `https://www.re.design` loads the **new** site over HTTPS (valid cert).
+- [ ] `http://…` and the apex `re.design` redirect to `https://www.re.design`
+      (or the chosen primary).
+- [ ] Redirect spot-checks (should 301/308, no 404):
+  - `/about` → `/info`  ·  `/contact` → `/info`  ·  `/think` → `/` (home)
+  - `/work/optus` → `/work/optus-refresh`  ·  `/work/a2-milk` → `/work`
+- [ ] `/sitemap.xml` and `/robots.txt` load and reference the primary host.
+- [ ] Page source: `<link rel="canonical">` and OG image URLs use the primary
+      host (confirms `NEXT_PUBLIC_SITE_URL` took effect).
+- [ ] Contact form / email links work.
 
-- [ ] `https://re.design` loads the **new** site over HTTPS (valid certificate).
-- [ ] `http://re.design` and `www.re.design` both **redirect** to
-      `https://re.design` (or your chosen primary).
-- [ ] Spot-check redirects (should 301/308 to the listed target, no 404):
-  - `https://re.design/about` → `/info`
-  - `https://re.design/contact` → `/info`
-  - `https://re.design/think` → `/` (home)
-  - `https://re.design/work/optus` → `/work/optus-refresh`
-  - `https://re.design/work/a2-milk` → `/work` (culled → index)
-- [ ] `https://re.design/sitemap.xml` and `/robots.txt` load and reference
-      **`re.design`** URLs (confirms `NEXT_PUBLIC_SITE_URL` took effect).
-- [ ] View-source on a couple of pages: the `<link rel="canonical">` and OG image
-      URLs use `https://re.design`, not a `*.vercel.app` host.
-- [ ] Any contact form / email links work.
-
-Quick redirect check from a terminal:
+Quick check from a terminal:
 
 ```bash
-for u in /about /contact /think /work/optus /work/a2-milk; do
-  echo "== $u =="; curl -sI "https://re.design$u" | grep -iE '^HTTP|^location'
+for u in / /about /contact /think /work/optus /work/a2-milk; do
+  echo "== $u =="; curl -sI "https://www.re.design$u" | grep -iE '^HTTP|^location'
 done
 ```
 
 ---
 
-## 6. SEO / Search Console (same day)
+## 7. Rollback (limited — plan to forward-fix instead)
 
-- [ ] In **Google Search Console**, verify the `re.design` property still resolves
-      (domain-level verification via DNS TXT is unaffected by the A/CNAME change).
-- [ ] Submit the new sitemap: `https://re.design/sitemap.xml`.
-- [ ] Keep the old property/records in GSC for monitoring 404s and redirect
-      coverage over the following weeks.
+Because the agency owns the previous Vercel account, we **cannot** simply
+re-point DNS to restore the old site — DNS already points at Vercel, and once we
+claim the domain the agency's deployment no longer serves it. Options, in order of
+preference:
 
----
+1. **Forward-fix.** If something's wrong, fix and redeploy our Vercel project. This
+   is the primary plan — hence the thorough pre-cutover QA in §4.
+2. **Full rollback (needs the agency).** To return the domain to the old site, the
+   **agency must re-add `re.design` to their Vercel project and re-verify ownership**
+   (their own TXT challenge). This is slower and depends on their availability, so
+   have their contact on standby during the window.
 
-## 7. Rollback plan
-
-If the new site is broken and can't be fixed quickly:
-
-1. At the DNS host, **restore the original records** captured in §2 (revert apex
-   A/ALIAS and `www` to the old host's values).
-2. Because TTL was lowered to 300s, the old site returns within minutes.
-3. The old Prismic site was never touched, so it serves immediately.
-
-No data is lost by rolling back — cutover is DNS-only.
+There is no data loss risk — this is a routing change only.
 
 ---
 
-## 8. Decommission (after ~2 weeks of healthy operation)
+## 8. Decommission (after ~2 weeks of stable operation)
 
-- [ ] Confirm traffic, error rates, and Search Console coverage are stable.
-- [ ] Restore normal TTL (e.g. 3600s+) on the DNS records.
-- [ ] Decommission the **old Prismic site** and its hosting.
-- [ ] Cancel/downgrade the old hosting and (if no longer needed) the Prismic plan.
+- [ ] Confirm traffic, errors, and Search Console coverage are stable.
+- [ ] Coordinate with the agency to shut down the old Vercel project and settle any
+      hosting/CMS (Prismic) billing that's no longer needed.
+- [ ] Restore a normal TTL on any records we lowered (only the `_vercel` TXT was
+      added; if it wasn't removed in §5.5, remove it now).
+
+---
+
+## 9. Search Console (cutover day)
+
+- [ ] Confirm the `re.design` property still verifies in Google Search Console
+      (DNS TXT verification is unaffected). If the property is `www`, keep it.
+- [ ] Submit the sitemap for the primary host, e.g.
+      `https://www.re.design/sitemap.xml`.
+- [ ] Monitor coverage / 404s over the following weeks.
 
 ---
 
 ## Appendix — redirect map (reference only; already live in the app)
 
-Source of truth: `web/next.config.ts`. These are served by Vercel for the new
-deployment — **no action required from IT.** All emit HTTP 308 (treated as 301).
+Source of truth: `web/next.config.ts`. Served by Vercel for our deployment — **no
+IT action.** All emit HTTP 308 (treated as 301).
 
 **Section / IA changes**
 
@@ -192,16 +208,15 @@ deployment — **no action required from IT.** All emit HTTP 308 (treated as 301
 | `/work/franklin-templeton`           | `/work/franklitempleton`          |
 | `/work/all-blacks-and-black-ferns`   | `/work/nzr`                       |
 
-**Culled case studies** — the following `/work/<slug>` URLs 301 to the `/work`
-index (44 total): a2-milk, actionaid, arise, bango, bare-witness, cognyte,
-crohns-colitis-uk, dext, dhre, durasein, east-west-rail, ethos-urban,
-everydayrewards, fifa, fora, fyta, g42, heritage, ignition, kenwood,
-ma-financial-group, majorplayers, manchester-united,
-national-breast-cancer-foundation, onegreenway, oppo-brand-experience,
-optus-employer-brand, optus-retail, skyscanner, skyscanner-brand-experience,
-snap-send-solve, stylus, sydney-design-festival, sydneyworldpride,
-telecommunications, test-page, the-global-fund, true-north, unsw,
-versus-arthritis, virgin-atlantic, we-know-telcos, woolworths1, youngpoet.
+**Culled case studies** — these `/work/<slug>` URLs 301 to the `/work` index (44):
+a2-milk, actionaid, arise, bango, bare-witness, cognyte, crohns-colitis-uk, dext,
+dhre, durasein, east-west-rail, ethos-urban, everydayrewards, fifa, fora, fyta,
+g42, heritage, ignition, kenwood, ma-financial-group, majorplayers,
+manchester-united, national-breast-cancer-foundation, onegreenway,
+oppo-brand-experience, optus-employer-brand, optus-retail, skyscanner,
+skyscanner-brand-experience, snap-send-solve, stylus, sydney-design-festival,
+sydneyworldpride, telecommunications, test-page, the-global-fund, true-north,
+unsw, versus-arthritis, virgin-atlantic, we-know-telcos, woolworths1, youngpoet.
 
-Case studies that kept their slug (~20) resolve at the same `/work/<slug>` path
-on the new site and need no redirect.
+Case studies that kept their slug (~20) resolve at the same `/work/<slug>` path and
+need no redirect.
