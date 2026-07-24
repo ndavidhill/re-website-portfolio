@@ -19,8 +19,8 @@ const OFFICES = [
     addressCountry: 'AU',
   },
   {
-    streetAddress: 'Level 6, 459 Church Street',
-    addressLocality: 'Richmond',
+    streetAddress: 'The Commons, 10-20 Gwynne St',
+    addressLocality: 'Cremorne',
     addressRegion: 'VIC',
     postalCode: '3121',
     addressCountry: 'AU',

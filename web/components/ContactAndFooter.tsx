@@ -42,7 +42,7 @@ export function ContactAndFooter({email = 'hello@re.design'}: Props) {
           </div>
           <div className={`min-w-0 text-text-primary ${type.footer}`}>
             <address className="not-italic whitespace-normal">
-            Level 6, 459 Church Street, Richmond, VIC 3121
+            The Commons, 10-20 Gwynne St, Cremorne VIC 3121
             </address>
           </div>
         </footer>
