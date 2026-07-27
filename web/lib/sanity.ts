@@ -69,6 +69,9 @@ export interface SanityImage {
   alt?: string
   /** Gallery cell shape, e.g. "1/1", "4/5". Only set on gallery images. */
   aspectRatio?: string
+  /** Free-form override for gallery cell shape when no preset fits, e.g.
+   *  "5/16" or "0.42". Wins over `aspectRatio`. */
+  customAspectRatio?: string
   hotspot?: {x: number; y: number; height: number; width: number}
   crop?: {top: number; bottom: number; left: number; right: number}
 }

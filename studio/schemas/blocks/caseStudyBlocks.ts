@@ -235,9 +235,10 @@ export const galleryBlock = defineType({
               type: 'string',
               title: 'Aspect ratio',
               description:
-                'Cell shape for this image. Defaults to square. On mobile the grid is 2-up; a lone final image spans full width.',
+                "Cell shape. Defaults to the image's own (natural) shape — pick a preset only to force a different crop. On mobile the grid is 2-up; a lone final image spans full width.",
               options: {
                 list: [
+                  {title: "Auto — image's natural shape", value: 'auto'},
                   {title: 'Square (1:1)', value: '1/1'},
                   {title: 'Portrait (4:5)', value: '4/5'},
                   {title: 'Tall (3:4)', value: '3/4'},
@@ -246,7 +247,22 @@ export const galleryBlock = defineType({
                   {title: 'Tall portrait (9:16)', value: '9/16'},
                 ],
               },
-              initialValue: '1/1',
+              initialValue: 'auto',
+            },
+            {
+              name: 'customAspectRatio',
+              type: 'string',
+              title: 'Custom aspect ratio',
+              description:
+                'Override for when none of the presets fit — e.g. a very tall image. Enter width/height like "5/16" or a decimal like "0.42". Takes precedence over the preset above.',
+              validation: (Rule) =>
+                Rule.custom((v) => {
+                  if (!v) return true
+                  const c = String(v).trim().replace(/:/g, '/').replace(/\s+/g, '')
+                  return /^\d+(\.\d+)?(\/\d+(\.\d+)?)?$/.test(c)
+                    ? true
+                    : 'Enter a ratio like "5/16", "9:16", or a decimal like "0.42".'
+                }),
             },
           ],
         },

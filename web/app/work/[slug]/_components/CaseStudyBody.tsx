@@ -200,6 +200,13 @@ function parseRatio(v?: string): string | null {
   return null
 }
 
+/** The image's intrinsic shape from Sanity asset metadata, as a CSS
+ *  aspect-ratio (e.g. 0.42), or null when dimensions aren't available. */
+function naturalRatio(img: SanityImage): string | null {
+  const a = img.asset?.metadata?.dimensions?.aspectRatio
+  return typeof a === 'number' && a > 0 ? String(a) : null
+}
+
 function GalleryBlockView({
   block,
   priority = false,
@@ -220,8 +227,14 @@ function GalleryBlockView({
     <div className={`grid w-full gap-4 ${gridCls}`}>
       {block.images.map((img, i) => {
         const src = imgSrc(img, 900)
-        // Per-image cell shape (editable in Studio); defaults to square.
-        const ratio = parseRatio(img.aspectRatio) ?? '1 / 1'
+        // Cell shape: a custom override wins, then a preset, else the image's
+        // own natural shape (no manual entry needed). Square only if the asset
+        // has no dimensions.
+        const ratio =
+          parseRatio(img.customAspectRatio) ??
+          parseRatio(img.aspectRatio) ??
+          naturalRatio(img) ??
+          '1 / 1'
         // On the 2-up mobile grid a lone final image would leave a gap, so let
         // it span the full width; reverts to a single cell at md+.
         const spanCls =
