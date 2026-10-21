@@ -7,7 +7,7 @@ import {schemaTypes} from './schemas'
 // design). Hardcoded as the source of truth so `sanity deploy` always embeds
 // the right project even if a local .env isn't loaded; env vars still override
 // for e.g. a staging dataset.
-const projectId = process.env.SANITY_STUDIO_PROJECT_ID || 'ju4przbj'
+const projectId = process.env.SANITY_STUDIO_PROJECT_ID || '7plawvk9'
 const dataset = process.env.SANITY_STUDIO_DATASET || 'production'
 
 const SINGLETONS = ['homePage', 'infoPage'] as const

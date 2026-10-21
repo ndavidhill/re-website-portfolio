@@ -1,7 +1,9 @@
 # Domain cutover runbook — re.design → new Vercel project
 
-Instructions for the IT team to move the production domain to the new website.
-Companion to `PROJECT.md` and `MIGRATION.md`.
+Steps to move the production domain to the new website. Two parties are involved:
+**us** (Vercel project owners) and **M&C Saatchi Global IT** (Hernani Morais), who
+controls DNS and implements record changes via a Change Request. Companion to
+`PROJECT.md` and `MIGRATION.md`.
 
 **Estimated hands-on time:** ~20–30 min in the cutover window, plus a short
 verification wait.
@@ -19,12 +21,24 @@ verification wait.
   - `re.design` → A `76.76.21.21`
   - `www.re.design` → CNAME `cname.vercel-dns.com`
   - (apex currently 301/308-redirects to `www.re.design`)
-- **DNS is hosted at DigiCert DNS** (nameservers `ns10–15.digicertdns.com/.net`),
-  which **our IT team can edit**. It is **not** AWS Route 53.
+- The domain is **registered with Gandi** (confirmed by WHOIS — registrant is
+  M&C Saatchi Worldwide Ltd via a `@contact.gandi.net` privacy proxy — and by
+  Hernani Morais, M&C Saatchi Global IT).
+- **DNS is hosted at DigiCert DNS.** The authoritative nameservers are
+  `ns10–15.digicertdns.com/.net`. It is **not** AWS Route 53. (⚠️ Hernani's
+  23 Jul 2026 email said "DNS Made Easy," but WHOIS is authoritative and shows
+  DigiCert DNS — reconcile this with IT before anyone edits the zone; whoever makes
+  the change must be in the **DigiCert DNS** zone, not DNS Made Easy.)
+- **We do not have direct DNS access.** DNS record changes are made by M&C Saatchi
+  Global IT. Hernani will implement changes once we give him the exact records: he
+  raises a **Change Request** in their Global IT ticketing system and seeks
+  **emergency approval** so it can go in quickly, rather than waiting for the regular
+  Change Advisory Board (CAB), which meets Thursday evenings AEST.
 
 Because DNS already resolves to Vercel, **cutover does not involve changing any
 A/CNAME records.** Cutover means **claiming the domain onto our Vercel project**,
-which Vercel does once we prove we control the DNS via a `_vercel` TXT record.
+which Vercel does once we prove control of the DNS via a `_vercel` TXT record — a
+record that IT must add on our behalf.
 
 ### ⚠️ The TXT record IS the go-live switch
 
@@ -33,10 +47,12 @@ When we add `re.design` to our Vercel project, Vercel will ask for a TXT record 
 as Vercel detects that TXT record and confirms ownership, it moves the domain to
 our project and our site goes live — and the agency's deployment stops serving it.**
 
-So: **do not add the TXT record until we are in the cutover window and have QA'd
-the new build.** Vercel's UI calls this "verification" and says you can remove the
-record afterward — true, but for this domain the verification step *is* the
-cutover, not a harmless preliminary.
+Because IT owns DNS, **that TXT record is added by Hernani via the Change Request**,
+not by us. So the go-live moment depends on his CR being approved and him being
+available in the window. **Do not hand IT the TXT value until we are in the cutover
+window and have QA'd the new build.** Vercel's UI calls this "verification" and says
+you can remove the record afterward — true, but for this domain the verification
+step *is* the cutover, not a harmless preliminary.
 
 ### You do NOT need to configure any redirects
 
@@ -50,16 +66,19 @@ the domain is on our project. Full map in the Appendix, for spot-checking only.
 ## 2. Prerequisites
 
 - [ ] **Vercel** access to our project `web` (add domains, edit env vars).
-- [ ] **DigiCert DNS** access to the `re.design` zone (to add the TXT record).
+- [ ] **M&C Saatchi Global IT on standby** (Hernani Morais) to add the `_vercel`
+      TXT record in DigiCert DNS. He raises a Change Request with emergency
+      approval, so give him advance notice of the window — the CR must be approved
+      and he must be available at cutover for the go-live to land on schedule.
 - [ ] The current production **`*.vercel.app` URL** for project `web`
       (Vercel → Project `web` → Domains) — to QA the new site pre-cutover.
 - [ ] **Agency coordination.** We do **not** have access to the agency's Vercel
       account. Notify them of the cutover window and that their deployment will
       stop serving `re.design` once we claim it. Confirm whether they need to
       keep a copy running, and agree a contact for the unlikely rollback.
-- [ ] Screenshot the current DigiCert DNS zone (all records) for reference.
-      **We will not change A/CNAME/MX/TXT/NS/SOA at cutover** — only *add* the
-      temporary `_vercel` TXT record.
+- [ ] Have IT screenshot / export the current **DigiCert DNS** zone (all records)
+      for reference. **We will not change A/CNAME/MX/TXT/NS/SOA at cutover** — IT
+      only *adds* the temporary `_vercel` TXT record.
 
 ---
 
@@ -103,12 +122,16 @@ both are added and `www` is set as primary).
    `www`). Vercel will report the domain is in use on another account and show a
    **TXT challenge** for `_vercel.re.design`.
 
-2. **Add the TXT record in DigiCert DNS** — this is the go-live action:
+2. **Hand the TXT record to IT** — this triggers the go-live action. Give Hernani
+   the **exact** values for his Change Request:
    - **Type:** TXT
    - **Name / Host:** `_vercel` (fully `_vercel.re.design`)
    - **Value:** the **exact** string Vercel shows (looks like
      `vc-domain-verify=re.design,<token>`). Copy it verbatim.
    - **TTL:** 300s.
+
+   IT adds it in the DigiCert DNS zone once the emergency CR is approved. Coordinate
+   live — the moment it propagates and Vercel verifies, the site is live.
 
 3. **Verify in Vercel.** Vercel polls automatically; you can also click Refresh /
    Verify. Once it detects the TXT record, it attaches the domain to our project
@@ -118,8 +141,8 @@ both are added and `www` is set as primary).
 4. **A/CNAME records:** no change needed — they already point at Vercel. Only
    touch them if Vercel explicitly flags a record as needing an update.
 
-5. **Remove the `_vercel` TXT record** once Vercel confirms verification (optional
-   but tidy).
+5. **Have IT remove the `_vercel` TXT record** once Vercel confirms verification
+   (optional but tidy — a second small change for Hernani).
 
 ---
 
@@ -170,7 +193,7 @@ There is no data loss risk — this is a routing change only.
 - [ ] Coordinate with the agency to shut down the old Vercel project and settle any
       hosting/CMS (Prismic) billing that's no longer needed.
 - [ ] Restore a normal TTL on any records we lowered (only the `_vercel` TXT was
-      added; if it wasn't removed in §5.5, remove it now).
+      added; if it wasn't removed in §5.5, ask IT to remove it now).
 
 ---
 
