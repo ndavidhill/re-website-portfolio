@@ -70,12 +70,14 @@ export const metadata: Metadata = {
     title: siteName,
     description: siteDescription,
   },
+  // Personal portfolio copy of re.design — kept out of search so it never
+  // competes with the live site.
   robots: {
-    index: true,
-    follow: true,
+    index: false,
+    follow: false,
     googleBot: {
-      index: true,
-      follow: true,
+      index: false,
+      follow: false,
       // Let Google use full-size image previews and untruncated snippets —
       // without these it defaults to a small thumbnail, which undersells a
       // portfolio built on imagery.
